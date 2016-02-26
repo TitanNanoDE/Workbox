@@ -28,6 +28,16 @@ let SystemCore = Make({
     init : function(){
         this._logger = System.Log.use(this.name);
         this.loadModules();
+
+        let [fileSystem] = System.ApplicationManager.getInstances('System::FileSystem');
+        let volume = Make(fileSystem.volumePrototypes.IndexedDBVolume)();
+
+        volume.ready.then(() => {
+            fileSystem.mount('/', volume);
+            fileSystem.emit('ready');
+
+            fileSystem.writeFile(`/tmp/${Date.now()}.log`, 'system start!! ~ so wow!!');
+        });
     },
 
     loadModules : function(){

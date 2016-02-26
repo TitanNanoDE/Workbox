@@ -8,6 +8,7 @@ import { DataBinding } from '../../af/modules/DataBinding.js';
 let registeredApplications = {};
 let logger = Log.use('ApplicationManager');
 let viewPort = null;
+let instanceList = {};
 
 let ApplicationManager = Make({
 
@@ -62,6 +63,12 @@ let ApplicationManager = Make({
 
         let instance = Make(registeredApplications[appName])(source);
 
+        if (!instanceList[appName]) {
+            instanceList[appName] = [];
+        }
+
+        instanceList[appName].push(instance);
+
         if (!instance.headless) {
             this.requestApplicationMainWindow().then(window => {
                 logger.log(`Application ${appName} loaded!`);
@@ -71,8 +78,16 @@ let ApplicationManager = Make({
                 return instance;
             });
         } else {
-            instance.init({});
+            setTimeout(() => {
+                logger.log(`Application ${appName} loaded!`);
+
+                instance.init({});
+            }, 0);
         }
+    },
+
+    getInstances : function(appName) {
+        return instanceList[appName];
     }
 }, Application)();
 

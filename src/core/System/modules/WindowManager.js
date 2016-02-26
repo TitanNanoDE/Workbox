@@ -39,6 +39,7 @@ let ApplicationWindow = {
 };
 
 let WindowManager = Make({
+    name : 'System::WindowManager',
     headless : true,
 
     init : function() {
