@@ -33,10 +33,20 @@ let SystemCore = Make({
         let volume = Make(fileSystem.volumePrototypes.IndexedDBVolume)();
 
         volume.ready.then(() => {
+            let dirIndex = null;
+
             fileSystem.mount('/', volume);
             fileSystem.emit('ready');
 
-            fileSystem.writeFile(`/tmp/${Date.now()}.log`, 'system start!! ~ so wow!!');
+            fileSystem.writeFile(`/tmp/${Date.now()}.log`, `system start!! ~ so wow!! ${new Date()}`);
+
+            dirIndex = fileSystem.ls('/tmp/');
+            this._logger.log(dirIndex);
+
+            fileSystem.readFile(`/tmp/${dirIndex[Math.round(Math.random() * dirIndex.length)]}`)
+                .then(file => {
+                    this._logger.log(file);
+                });
         });
     },
 

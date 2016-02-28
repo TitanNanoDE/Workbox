@@ -72,6 +72,27 @@ let File = {
     content : '',
 };
 
+let buildSubTree = function(index, tree = {}) {
+    index.forEach(filePath => {
+        let treeCursor = tree;
+        filePath = filePath.split('/');
+
+        filePath.shift();
+        filePath.forEach((dir, index) => {
+
+            if (index === filePath.length - 1) {
+                treeCursor[dir] = true;
+            } else if (!treeCursor[dir]) {
+                treeCursor = treeCursor[dir] = {};
+            } else {
+                treeCursor = treeCursor[dir];
+            }
+        });
+    });
+
+    return tree;
+};
+
 let FileSystem = Make({
     name : 'System::FileSystem',
     headless : true,
@@ -91,12 +112,12 @@ let FileSystem = Make({
             }
         }
 
-        return cursor;
+        return Object.keys(cursor);
     },
 
     mount : function(mountPoint, volume){
         let rawPoint = mountPoint.split('/');
-        let tree = this._buildSubTree(volume.index);
+        let tree = buildSubTree(volume.index);
 
         rawPoint.shift();
 
@@ -124,7 +145,8 @@ let FileSystem = Make({
     writeFile : function(path, content) {
         let file = null;
         // find the volume to write on
-        let volume = volumes.sort((a, b) => a.length > b.length).find(volume => path.indexOf(volume.mountPoint === 0));
+        let volume = volumes.sort((a, b) => a.mountPoint.length > b.mountPoint.length)
+            .find(volume => path.indexOf(volume.mountPoint) === 0);
 
         //adjust path to be absolute to the volume
         path = path.replace(volume.mountPoint, '');
@@ -135,27 +157,24 @@ let FileSystem = Make({
             content : content
         }, File)();
 
-        return volume._actual.writeFile(path, file);
+        return volume._actual.writeFile(path, file).then(file => {
+            buildSubTree([path], volume.subtree);
+
+            return file;
+        });
     },
 
-    _buildSubTree : function(volume) {
-        let tree = {};
+    readFile : function(path) {
+        // find the volume
+        let volume = volumes.sort((a, b) => a.mountPoint.length > b.mountPoint.length)
+            .find(volume => path.indexOf(volume.mountPoint) === 0);
 
-        Object.keys(volume).forEach(filePath => {
-            let treeCursor = tree;
-            filePath = filePath.split('/');
+        //adjust path to be absolute to the volume
+        path = path.replace(volume.mountPoint, '');
+        path = (path[0] !== '/') ? ('/' + path) : path;
 
-            filePath.shift();
-            filePath.forEach((dir, index) => {
-                if (index !== filePath.length) {
-                    treeCursor = treeCursor[dir] = {};
-                } else {
-                    treeCursor[dir] = true;
-                }
-            });
-        });
+        return volume._actual.readFile(path);
 
-        return tree;
     },
 
     volumePrototypes : {

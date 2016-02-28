@@ -24,6 +24,8 @@ let LogInterface = {
     _add : function(type, args) {
         args.unshift(`${this._name}:`);
 
+        args = args.map(item => (typeof item !== 'string') ? JSON.stringify(item) : item);
+
         this._buffer.push(Make({
             type : type,
             content : args.join(' ')
