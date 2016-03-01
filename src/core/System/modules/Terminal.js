@@ -6,6 +6,8 @@ let Terminal = Make({
 
     name : 'System::Terminal',
 
+    rootView : true,
+
     cache : null,
 
     view : null,

@@ -15,6 +15,8 @@ let SystemCore = Make({
 
     _parent : null,
 
+    headless : true,
+
     _make : function(parent){
         Application._make.apply(this);
 
@@ -46,6 +48,7 @@ let SystemCore = Make({
             fileSystem.readFile(`/tmp/${dirIndex[Math.round(Math.random() * dirIndex.length)]}`)
                 .then(file => {
                     this._logger.log(file);
+                    this.emit('ready');
                 });
         });
     },

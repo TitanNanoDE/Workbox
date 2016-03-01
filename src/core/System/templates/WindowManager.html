@@ -1,0 +1,9 @@
+<style media="screen">
+    .view-port[scope-name="default"] {
+        background-color: black;
+    }
+</style>
+
+<template repeat="window in flattenWindowIndex()" replace>
+    <template src="{{window._template}}" insert bind="window._view"></template>
+</template>

@@ -9,15 +9,28 @@ let registeredApplications = {};
 let logger = Log.use('ApplicationManager');
 let viewPort = null;
 let instanceList = {};
+let windowManagerReady = false;
+
+let initApplication = function(instance, manager) {
+    manager.requestApplicationMainWindow(instance).then(window => {
+        logger.log(`Application ${instance.name} loaded!`);
+
+        instance.init(window);
+
+        return instance;
+    });
+}
 
 let ApplicationManager = Make({
 
     _make : function(){
         Application._make.apply(this);
 
-        this.on('updateWindowManager', newMethod => {
-            this.requestApplicationMainWindow = newMethod;
-        });
+        this.on('WindowManager', () => windowManagerReady = true);
+    },
+
+    updateWindowManager : function(newMethod){
+        this.requestApplicationMainWindow = newMethod;
     },
 
     getApplication : function(){},
@@ -69,14 +82,14 @@ let ApplicationManager = Make({
 
         instanceList[appName].push(instance);
 
-        if (!instance.headless) {
-            this.requestApplicationMainWindow().then(window => {
-                logger.log(`Application ${appName} loaded!`);
-
-                instance.init(window);
-
-                return instance;
-            });
+        if (!instance.headless && instance.rootView) {
+            initApplication(instance, this);
+        } else if(!instance.headless) {
+            if (windowManagerReady) {
+                initApplication(instance, this);
+            } else {
+                this.on('WindowManager', () => initApplication(instance, this));
+            }
         } else {
             setTimeout(() => {
                 logger.log(`Application ${appName} loaded!`);
@@ -88,6 +101,10 @@ let ApplicationManager = Make({
 
     getInstances : function(appName) {
         return instanceList[appName];
+    },
+
+    getViewPortInstance : function(...args){
+        return viewPort.getInstance(...args);
     }
 }, Application)();
 
