@@ -1,0 +1,71 @@
+<style media="screen">
+    .window.mainWindow {
+        position: absolute;
+        height: 400px;
+        width: 600px;
+        left: 20px;
+        top: 20px;
+        background-color: #ccc6c6;
+        padding: .8rem;
+        border-radius: .5rem;
+        box-shadow: .1rem .1rem .7rem rgba(0,0,0,.5);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .window > .windowTitle {
+        position: relative;
+    }
+
+    .window > .windowTitle .title {
+        align-items: center;
+        justify-content: center;
+        display: flex;
+        left: 0;
+        right: 0;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        font-size: 1.4rem;
+    }
+
+    .window > .windowTitle .action {
+        border-radius: 50%;
+        height: 1em;
+        width: 1em;
+        font-size: 1.2rem;
+        display: inline-block;
+        margin-right: .3rem;
+    }
+
+    .window > .windowTitle .action.close {
+        background-color: red;
+    }
+
+    .window > .windowTitle .action.hide {
+        background-color: yellow;
+    }
+
+    .window > .windowTitle .action.max {
+        background-color: green;
+    }
+
+    .mainWindow > .view-port-container {
+        flex: 1 1 auto;
+        position: relative;
+    }
+</style>
+
+<div class="window mainWindow">
+    <div class="windowTitle">
+        <div class="actions">
+            <span class="action close"></span>
+            <span class="action hide"></span>
+            <span class="action max"></span>
+        </div>
+        <div class="title">{{name}}</div>
+    </div>
+    <div class="view-port-container">
+        <view-port scope-name="{{id}}"></view-port>
+    </div>
+</div>

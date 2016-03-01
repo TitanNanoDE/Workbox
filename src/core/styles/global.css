@@ -1,0 +1,15 @@
+html {
+    font-size: 10px;
+}
+
+body {
+    font-size: 1.5rem;
+    font-family: sans-serif;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    left: 0;
+    top: 0;
+    position: absolute;
+}
