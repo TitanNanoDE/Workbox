@@ -2,8 +2,12 @@
     .view-port[scope-name="default"] {
         background-color: black;
     }
+
+    .window {
+        position: absolute;
+    }
 </style>
 
-<template repeat="window in flattenWindowIndex()" replace>
+<template repeat="window in windowList" replace>
     <template src="{{window._template}}" insert bind="window._view"></template>
 </template>

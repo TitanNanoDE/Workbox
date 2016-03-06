@@ -1,11 +1,12 @@
 <style media="screen">
     .window.fullscreen {
-        position: absolute;
         left: 0;
         top: 0;
-        right: 0;
-        bottom: 0;
+        width: 100vw;
+        height: 100vh;
     }
 </style>
 
-<view-port scope-name="{{id}}"></view-port>
+<div class="window fullscreen" style="z-index: {{_getZIndex()}}">
+    <view-port scope-name="{{id}}"></view-port>
+</div>

@@ -6,6 +6,13 @@ let Terminal = Make({
 
     name : 'System::Terminal',
 
+    displayName : 'Terminal',
+
+    icons : [{
+        name : '32',
+        src : './userSpace/theme/terminal.svg',
+    }],
+
     rootView : true,
 
     cache : null,

@@ -1,0 +1,11 @@
+<style media="screen">
+    .window.workspace-border-tool[orientation="left"] {
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+</style>
+
+<div class="window workspace-border-tool" style="z-index: {{_getZIndex()}}" bind-display="isVisible()" orientation="{{side}}">
+    <view-port scope-name="{{id}}"></view-port>
+</div>

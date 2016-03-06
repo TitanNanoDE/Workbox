@@ -1,6 +1,5 @@
 <style media="screen">
     .window.mainWindow {
-        position: absolute;
         height: 400px;
         width: 600px;
         left: 20px;
@@ -43,20 +42,21 @@
     }
 
     .window > .windowTitle .action.hide {
-        background-color: yellow;
+        background-color: orange;
     }
 
     .window > .windowTitle .action.max {
-        background-color: green;
+        background-color: limegreen;
     }
 
     .mainWindow > .view-port-container {
         flex: 1 1 auto;
         position: relative;
+        overflow: auto;
     }
 </style>
 
-<div class="window mainWindow">
+<div class="window mainWindow" style="z-index: {{_getZIndex()}}">
     <div class="windowTitle">
         <div class="actions">
             <span class="action close"></span>

@@ -5,6 +5,8 @@ import Log from '../System/Log.js';
 import Application from '../../af/core/prototypes/Application.js';
 import { DataBinding } from '../../af/modules/DataBinding.js';
 
+const IMEDIATE_INVOCE = 0;
+
 let registeredApplications = {};
 let logger = Log.use('ApplicationManager');
 let viewPort = null;
@@ -15,11 +17,34 @@ let initApplication = function(instance, manager) {
     manager.requestApplicationMainWindow(instance).then(window => {
         logger.log(`Application ${instance.name} loaded!`);
 
+        manager.emit('applicationLaunched', Make(ApplicationInfo)(instance));
         instance.init(window);
 
         return instance;
     });
-}
+};
+
+/**
+ * @lends ApplicationInfo.prototype
+ */
+let ApplicationInfo = {
+    name : null,
+    displayName : null,
+    icons : null,
+    headless : false,
+
+    /**
+     * @constructs
+     * @param {Application} application - the application from which the information should be extracted from.
+     * @return {void}
+     */
+    _make : function(application) {
+        this.name = application.name;
+        this.displayName = application.displayName;
+        this.icons = application.icons ? application.icons.slice() : [];
+        this.headless = application.headless;
+    }
+};
 
 let ApplicationManager = Make({
 
@@ -38,7 +63,7 @@ let ApplicationManager = Make({
     /**
      * requests a new window from the window manager. The default method creates a fake window with the main viewport.
      *
-     * @return Promise<Window>
+     * @return {Promise<Window>} - a promise for the window creation.
      */
     requestApplicationMainWindow : function(){
         return viewPort.getInstance('default').then(viewPort => {
@@ -51,7 +76,8 @@ let ApplicationManager = Make({
     /**
      * Registers a new application in the system
      *
-     * @param {Application} application
+     * @param {Application} application - the application which should be registered.
+     * @return {ApplicationManager} - The ApplicationManager it self
      */
     register : function(application){
 
@@ -68,8 +94,9 @@ let ApplicationManager = Make({
     /**
      * launches an application by the given name
      *
-     * @param {string} appName
-     * @return {Application}
+     * @param {string} appName - the name of the application to launch.
+     * @param {Application} source - the application which triggered the launch
+     * @return {void}
      */
     launch : function(appName, source) {
         logger.log(`launching ${appName}...`);
@@ -95,7 +122,7 @@ let ApplicationManager = Make({
                 logger.log(`Application ${appName} loaded!`);
 
                 instance.init({});
-            }, 0);
+            }, IMEDIATE_INVOCE);
         }
     },
 
@@ -105,6 +132,25 @@ let ApplicationManager = Make({
 
     getViewPortInstance : function(...args){
         return viewPort.getInstance(...args);
+    },
+
+    getApplication : function(name) {
+        let application = Object.keys(registeredApplications).find(application => {
+            return application.name === name;
+        });
+
+        return Make(ApplicationInfo)(application);
+    },
+
+    /**
+     * @return {ApplicationInfo[]} - list of application info objects
+     */
+    getActiveApplicationList : function() {
+        return Object.keys(instanceList).map(key => {
+            let application = registeredApplications[key];
+
+            return Make(ApplicationInfo)(application);
+        });
     }
 }, Application)();
 
