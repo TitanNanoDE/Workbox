@@ -4,9 +4,10 @@ import System from '../../System.js';
 const NO_ZINDEX = 0;
 const ZINDEX_IS_UNDEFINED = 0;
 const BASIC_ZINDEX = 1;
+const REMOVE_ONE_ITEM = 1;
 
 let { Make } = Af.Util;
-let { Application } = Af.Prototypes;
+let { Application, EventTarget } = Af.Prototypes;
 
 let templates = {
     mainWindow : './core/System/templates/mainWindow.html',
@@ -28,20 +29,23 @@ let calculateZIndexLevel = function(window) {
     }
 }
 
-let ApplicationWindow = {
+let ApplicationWindow = Make({
     viewPort : null,
     state : null,
     _view : null,
     _template : null,
     _stackMode : 'normal',
+    _app : null,
 
     _make : function(type, applicationName){
         this._view = {
             id : `${applicationName}#${windowIndex[applicationName].length}`,
             name : applicationName,
             _getZIndex : calculateZIndexLevel.bind(null, this),
+            closeWindow : this.close.bind(this),
         };
 
+        this._app = applicationName;
         this._template = templates[type];
     },
 
@@ -66,7 +70,17 @@ let ApplicationWindow = {
      * @return {void}
      */
     close : function(){
-        System.SystemHandlers.ErrorHandler.methodNotImplemented('ApplicationWindow');
+        this.emit('windowClose');
+
+        this.viewPort.destory();
+        this._view.__destroy__();
+        this._view.__cleanElements__();
+
+        let index = zStack.indexOf(this);
+        zStack.splice(index, REMOVE_ONE_ITEM);
+
+        index = windowIndex[this._app].indexOf(this);
+        windowIndex[this._app].splice(index, REMOVE_ONE_ITEM);
     },
 
     get name(){
@@ -81,7 +95,7 @@ let ApplicationWindow = {
     apperanceMode : function(mode) {
         this._stackMode = mode;
     }
-};
+}, EventTarget).get();
 
 let WorkSpaceBorderToolWindow = Make({
     _make : function(type, applicationName){
