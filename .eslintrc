@@ -11,7 +11,6 @@
         "valid-jsdoc" : 2,
         "no-unreachable" : 2,
         "dot-notation" : 2,
-        "no-magic-numbers" : 2,
         "no-redeclare" : 2,
         "no-unused-labels" : 2,
         "yoda" : 2,
