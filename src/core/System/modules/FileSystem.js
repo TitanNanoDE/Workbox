@@ -112,7 +112,7 @@ let FileSystem = Make({
             }
         }
 
-        return Object.keys(cursor);
+        return cursor;
     },
 
     mount : function(mountPoint, volume){

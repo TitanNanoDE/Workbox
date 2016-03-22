@@ -42,8 +42,8 @@ let SystemCore = Make({
 
             fileSystem.writeFile(`/tmp/${Date.now()}.log`, `system start!! ~ so wow!! ${new Date()}`);
 
-            dirIndex = fileSystem.ls('/tmp/');
-            this._logger.log(dirIndex);
+            dirIndex = Object.keys(fileSystem.ls('/tmp/'));
+//            this._logger.log(dirIndex);
 
             fileSystem.readFile(`/tmp/${dirIndex[Math.round(Math.random() * dirIndex.length)]}`)
                 .then(file => {

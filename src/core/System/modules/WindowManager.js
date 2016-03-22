@@ -38,6 +38,8 @@ let ApplicationWindow = Make({
     _app : null,
 
     _make : function(type, applicationName){
+        EventTarget._make.apply(this);
+
         this._view = {
             id : `${applicationName}#${windowIndex[applicationName].length}`,
             name : applicationName,
@@ -73,6 +75,8 @@ let ApplicationWindow = Make({
         this.emit('windowClose');
 
         this.viewPort.destory();
+        System.ViewPort.free(this.viewPort);
+
         this._view.__destroy__();
         this._view.__cleanElements__();
 
@@ -81,15 +85,21 @@ let ApplicationWindow = Make({
 
         index = windowIndex[this._app].indexOf(this);
         windowIndex[this._app].splice(index, REMOVE_ONE_ITEM);
+
+
     },
 
-    get name(){
+    get title() {
         return this._view.name;
     },
 
-    set name(value) {
+    set title(value) {
         this._view.name = value;
         this._view.__apply__();
+    },
+
+    get scope() {
+        return this.viewPort.scope;
     },
 
     apperanceMode : function(mode) {

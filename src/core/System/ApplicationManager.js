@@ -2,14 +2,13 @@
 
 import { Make } from '../../af/util/make.js';
 import Log from '../System/Log.js';
+import ViewPort from './ViewPort.js';
 import Application from '../../af/core/prototypes/Application.js';
-import { DataBinding } from '../../af/modules/DataBinding.js';
 
 const IMEDIATE_INVOCE = 0;
 
 let registeredApplications = {};
 let logger = Log.use('ApplicationManager');
-let viewPort = null;
 let instanceList = {};
 let windowManagerReady = false;
 
@@ -66,7 +65,7 @@ let ApplicationManager = Make({
      * @return {Promise<Window>} - a promise for the window creation.
      */
     requestApplicationMainWindow : function(){
-        return viewPort.getInstance('default').then(viewPort => {
+        return ViewPort.getInstance('default').then(viewPort => {
             return {
                 viewPort : viewPort
             };
@@ -131,7 +130,7 @@ let ApplicationManager = Make({
     },
 
     getViewPortInstance : function(...args){
-        return viewPort.getInstance(...args);
+        return ViewPort.getInstance(...args);
     },
 
     getApplication : function(name) {
@@ -153,7 +152,5 @@ let ApplicationManager = Make({
         });
     }
 }, Application)();
-
-viewPort = Make(DataBinding.ViewPort)(ApplicationManager);
 
 export default ApplicationManager;

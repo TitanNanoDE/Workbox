@@ -3,6 +3,88 @@ import SystemAPI from '../../SystemAPI.js';
 let { Application } = SystemAPI.Prototypes;
 let { Make } = SystemAPI.Tools;
 
+let mapDirectoryIndex = function(index) {
+    return Object.keys(index).map(key => {
+        return {
+            name : key,
+            isDir : typeof index[key] === 'object',
+            isFile : typeof index[key] === 'boolean',
+        };
+    });
+};
+
+let createFileMangerWindow = function(application){
+    SystemAPI.Windows.createWindow(application, 'mainWindow').then(window => {
+        window.viewPort.bind({ template : WorkSpace.templates.FileManagerWindow });
+
+        window.scope.goToPath = function(path) {
+            let scope = this.__parentScope__ || this;
+
+            scope.currentPath = path;
+            window.title = scope.currentPath;
+            scope.currentDir = mapDirectoryIndex(SystemAPI.FileSystem.ls(scope.currentPath));
+
+            scope.history.stack = scope.history.stack.slice(0, scope.history.cursor + 1);
+            scope.history.stack.push(scope.currentPath);
+            scope.history.cursor = scope.history.stack.length - 1;
+        };
+
+        window.scope.openDir = function() {
+            if (this.item.isDir) {
+                this.goToPath(`${this.currentPath}${this.item.name}/`);
+            }
+        }
+
+        window.scope.moveToCursor = function() {
+            let path = this.history.stack[this.history.cursor];
+
+            this.currentPath = path;
+            window.title = path;
+            this.currentDir = mapDirectoryIndex(SystemAPI.FileSystem.ls(path));
+        }
+
+        window.scope.goBack = function() {
+            if (this.history.canGoBack) {
+                this.history.cursor -= 1;
+
+                this.moveToCursor();
+            }
+        }
+
+        window.scope.goForward = function() {
+            if (this.history.canGoForward) {
+                this.history.cursor += 1;
+
+                this.moveToCursor();
+            }
+        }
+
+        window.scope.addDirClass = function() {
+            return this.item.isDir && 'dirType' ||　'';
+        };
+
+        window.scope.addFileClass = function() {
+            return this.item.isFile && 'fileType' ||　'';
+        }
+
+        window.scope.history = {
+            stack : [],
+            cursor : 0,
+
+            get canGoBack() {
+                return this.cursor > 0;
+            },
+
+            get canGoForward() {
+                return this.cursor > -1 && this.cursor < (this.stack.length - 1);
+            }
+        };
+
+        window.scope.goToPath('/');
+        window.scope.__apply__();
+    });
+};
+
 let WorkSpace = Make({
 
     name : 'System::WorkSpace',
@@ -13,26 +95,23 @@ let WorkSpace = Make({
 
     templates : {
         backgroundWindow : './core/System/templates/WorkSpaceBackground.html',
-        infoWindow       : './core/System/templates/WorkSpaceInfo.html',
+        FileManagerWindow : './core/System/templates/WorkSpaceFileManager.html',
         dock             : './core/System/templates/WorkSpaceDock.html',
     },
 
     windows : null,
     backgroundWindow : null,
-    infoWindow : null,
     dock : null,
 
     init : function(window) {
 
         this.windows = {
             /** @type {ApplicationWindow} */
-            infoWindow : window,
             backgroundWindow : null,
             dock : null,
         };
 
-        this.windows.infoWindow.viewPort.bind({ template : this.templates.infoWindow });
-        this.infoWindow = this.windows.infoWindow.viewPort.scope;
+        window.close();
 
         SystemAPI.Windows.createWindow(this, 'fullScreen').then(window => {
             this.windows.backgroundWindow = window;
@@ -84,7 +163,9 @@ let WorkSpace = Make({
                 }
             });
 
-            this.dock.__apply__();
+            createFileMangerWindow(this);
+
+//            this.dock.__apply__();
         });
 
     }
