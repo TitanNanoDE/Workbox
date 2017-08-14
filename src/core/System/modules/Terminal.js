@@ -24,16 +24,17 @@ let Terminal = Make({
     },
 
     init : function(window){
-        this.view = window.viewPort.bind({
+        return window.viewPort.bind({
             template : './core/System/templates/Terminal.html'
-        });
+        }).then(viewPort => {
+            this.view = viewPort;
+            this.view.scope.lineBuffer = this.cache;
 
-        this.view.scope.lineBuffer = this.cache;
+            System.Log.connect(item => {
+                this.cache.push(item);
 
-        System.Log.connect(item => {
-            this.cache.push(item);
-
-            this.view.update();
+                this.view.update();
+            });
         });
     }
 

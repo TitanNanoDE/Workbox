@@ -32,7 +32,8 @@ gulp.task("webpack", [buildStage, systemModulesBuilder], function(callback) {
                 loader: "babel-loader",
                 test: /\.js$/,
                 query : {
-                    presets: ['es2015']
+                    presets: ['es2015'],
+                    sourceMaps: true,
                 },
                 include: [
                     path.join(__dirname, 'build'),

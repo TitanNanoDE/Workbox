@@ -1,0 +1,10 @@
+{
+    "lookupPaths": [
+        "src"
+    ],
+    "minimumVersion": "0.4.0",
+    "namedExports" : {
+        "src/af/util/make" : [ "Make", "hasPrototype", "Mixin"],
+        "src/af/modules/DataBinding/Parser" : ["ObjectParser", "parseExpression", "assignExpression"]
+    }
+}

@@ -15,7 +15,7 @@
         "no-unused-labels" : 2,
         "yoda" : 2,
         "no-var" : 2,
-        "prefer-arrow-callback" : 2,
+        "prefer-arrow-callback" : 2
     },
     "parserOptions": {
         "sourceType": "module",

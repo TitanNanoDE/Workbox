@@ -4,7 +4,10 @@ import { DataBinding } from '../../af/modules/DataBinding.js';
 
 let { Make } = Af.Util;
 
-let ViewPortHost = Make(Application)();
+let ViewPortHost = Make({
+    name: 'ViewPortService',
+}, Application)();
+
 let ViewPort = Make(DataBinding.ViewPort)(ViewPortHost);
 
 export default ViewPort;

@@ -2,10 +2,9 @@
     .window.mainWindow {
         height: 400px;
         width: 600px;
-        left: 20px;
-        top: 20px;
+        left: 0px;
+        top: 0px;
         background-color: #ccc6c6;
-        padding: .8rem;
         border-radius: .5rem;
         box-shadow: .1rem .1rem .7rem rgba(0,0,0,.5);
         display: flex;
@@ -14,7 +13,12 @@
 
     .window > .windowTitle {
         position: relative;
-        margin-bottom: .8rem;
+        padding: .8rem;
+    }
+
+    .window > .windowTitle:active {
+        cursor: -webkit-grabbing;
+        cursor: grabbing;
     }
 
     .window > .windowTitle .title {
@@ -71,11 +75,13 @@
         flex: 1 1 auto;
         position: relative;
         overflow: auto;
+        margin: 0 .8rem .8rem;
     }
 </style>
 
-<div class="window mainWindow" style="z-index: {{_getZIndex()}}">
-    <div class="windowTitle">
+<div class="window mainWindow"
+    style="{{calculateStyle()}}">
+    <div class="windowTitle" bind-events="{ mousedown: windowDrag.grab, mouseup: windowDrag.drop }">
         <div class="title">{{name}}</div>
         <div class="actions">
             <span class="action close" bind-events="{click:closeWindow}"></span>

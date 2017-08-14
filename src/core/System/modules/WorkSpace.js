@@ -15,8 +15,8 @@ let mapDirectoryIndex = function(index) {
 
 let createFileMangerWindow = function(application){
     SystemAPI.Windows.createWindow(application, 'mainWindow').then(window => {
-        window.viewPort.bind({ template : WorkSpace.templates.FileManagerWindow });
-
+        return window.viewPort.bind({ template : WorkSpace.templates.FileManagerWindow }).then(() => window);
+    }).then((window) => {
         window.scope.goToPath = function(path) {
             let scope = this.__parentScope__ || this;
 
@@ -85,11 +85,33 @@ let createFileMangerWindow = function(application){
     });
 };
 
+let createMainMenuWindow = function(application) {
+    SystemAPI.Windows.createWindow(application, 'workSpaceBorderToolWindow').then(window => {
+        return window.viewPort.bind({ template : WorkSpace.templates.MainMenuWindow }).then(() => window);
+    }).then((window) => {
+
+        window.scope.currentMainMenu = {};
+
+        window.scope.primaryEntryClick = function() {
+
+        };
+
+        window.scope.subEntryClick = function(){
+
+        };
+
+        window.dockTo('top');
+        window.apperanceMode('screenBlocking');;
+    });
+}
+
 let WorkSpace = Make({
 
     name : 'System::WorkSpace',
 
     displayName : 'File Manager',
+
+    noMainWindow: true,
 
     icons : [{ name : '32', src : './userSpace/theme/file-manager.svg'}],
 
@@ -97,13 +119,14 @@ let WorkSpace = Make({
         backgroundWindow : './core/System/templates/WorkSpaceBackground.html',
         FileManagerWindow : './core/System/templates/WorkSpaceFileManager.html',
         dock             : './core/System/templates/WorkSpaceDock.html',
+        MainMenuWindow : './core/System/templates/WorkSpaceMainMenu.html',
     },
 
     windows : null,
     backgroundWindow : null,
     dock : null,
 
-    init : function(window) {
+    init : function() {
 
         this.windows = {
             /** @type {ApplicationWindow} */
@@ -111,11 +134,11 @@ let WorkSpace = Make({
             dock : null,
         };
 
-        window.close();
-
         SystemAPI.Windows.createWindow(this, 'fullScreen').then(window => {
             this.windows.backgroundWindow = window;
-            this.windows.backgroundWindow.viewPort.bind({ template : this.templates.backgroundWindow });
+
+            return this.windows.backgroundWindow.viewPort.bind({ template : this.templates.backgroundWindow });
+        }).then(() => {
             this.windows.backgroundWindow.apperanceMode('alwaysBehind');
             this.backgroundWindow = this.windows.backgroundWindow.viewPort.scope;
 
@@ -125,7 +148,9 @@ let WorkSpace = Make({
 
         SystemAPI.Windows.createWindow(this, 'workSpaceBorderToolWindow').then(window => {
             this.windows.dock = window;
-            this.windows.dock.viewPort.bind({ template : this.templates.dock });
+
+            return this.windows.dock.viewPort.bind({ template : this.templates.dock });
+        }).then(() => {
             this.dock = this.windows.dock.viewPort.scope;
 
             this.windows.dock.dockTo('left');
@@ -144,28 +169,27 @@ let WorkSpace = Make({
                         icon : icon && icon.src,
                     };
                 });
+        });
 
-            SystemAPI.Applications.on('applicationLaunched', application => {
-                if (!application.headless) {
-                    let isNew = !!this.dock.itemList.find(item => item.name === application.name);
+        createFileMangerWindow(this);
+        createMainMenuWindow(this);
 
-                    if (isNew) {
-                        let icon = application.icons.find(icon => icon.name === '32')
+        SystemAPI.Applications.on('applicationLaunched', application => {
+            if (!application.headless) {
+                let isNew = !!this.dock.itemList.find(item => item.name === application.name);
 
-                        application = {
-                            displayName : application.displayName || application.name,
-                            name : application.name,
-                            icon : icon && icon.src
-                        };
+                if (isNew) {
+                    let icon = application.icons.find(icon => icon.name === '32')
 
-                        this.dock.itemList.push(application);
-                    }
+                    application = {
+                        displayName : application.displayName || application.name,
+                        name : application.name,
+                        icon : icon && icon.src
+                    };
+
+                    this.dock.itemList.push(application);
                 }
-            });
-
-            createFileMangerWindow(this);
-
-//            this.dock.__apply__();
+            }
         });
 
     }

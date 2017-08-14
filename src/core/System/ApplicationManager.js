@@ -13,14 +13,20 @@ let instanceList = {};
 let windowManagerReady = false;
 
 let initApplication = function(instance, manager) {
-    manager.requestApplicationMainWindow(instance).then(window => {
+    let init = window => {
         logger.log(`Application ${instance.name} loaded!`);
 
         manager.emit('applicationLaunched', Make(ApplicationInfo)(instance));
         instance.init(window);
 
         return instance;
-    });
+    };
+
+    if (instance.noMainWindow) {
+        init(null);
+    } else {
+        manager.requestApplicationMainWindow(instance).then(init);
+    }
 };
 
 /**
@@ -46,6 +52,8 @@ let ApplicationInfo = {
 };
 
 let ApplicationManager = Make({
+
+    name: 'ApplicationManager',
 
     _make : function(){
         Application._make.apply(this);
