@@ -8,7 +8,7 @@
     "es6-module-loader": "^0.17.11"
   },
   "devDependencies": {
-    "babel-loader": "^6.2.1",
+    "babel-loader": "^7.0.0",
     "babel-preset-es2015": "^6.1.18",
     "del": "^3.0.0",
     "event-stream": "^3.3.2",
