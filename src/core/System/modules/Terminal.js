@@ -1,6 +1,6 @@
-import { Make } from '../../../af/util/make.js';
-import Application from '../../../af/core/prototypes/Application.js';
-import System from '../../System.js';
+import { Make } from '../../../af/util/make';
+import Application from '../../../af/core/Application';
+import System from '../../System';
 
 let Terminal = Make({
 
@@ -23,19 +23,21 @@ let Terminal = Make({
         this.cache = [];
     },
 
-    init : function(window){
-        return window.viewPort.bind({
-            template : './core/System/templates/Terminal.html'
-        }).then(viewPort => {
-            this.view = viewPort;
-            this.view.scope.lineBuffer = this.cache;
-
-            System.Log.connect(item => {
-                this.cache.push(item);
-
-                this.view.update();
-            });
+    init(window) {
+        window.viewPort.bind({
+            template : 'terminal-template',
         });
+
+        this.view = window.viewPort;
+        this.view.scope.lineBuffer = this.cache;
+
+        System.Log.connect(item => {
+            this.cache.push(item);
+
+            this.view.update();
+        });
+
+        return;
     }
 
 

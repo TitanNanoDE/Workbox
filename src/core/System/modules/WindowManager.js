@@ -1,25 +1,16 @@
-import Af from '../../../af/af.js';
-import System from '../../System.js';
+import System from '../../System';
+import { Make, hasPrototype } from 'application-frame/util/make';
+import Application from 'application-frame/core/Application';
+import EventTarget from 'application-frame/core/EventTarget';
 
 const NO_ZINDEX = 0;
 const ZINDEX_IS_UNDEFINED = 0;
 const BASIC_ZINDEX = 1;
 const REMOVE_ONE_ITEM = 1;
 
-let { Make, hasPrototype } = Af.Util;
-let { Application, EventTarget } = Af.Prototypes;
-
-let templates = {
-    mainWindow : './core/System/templates/mainWindow.html',
-    fullScreen : './core/System/templates/fullScreenWindow.html',
-    workSpaceBorderToolWindow : './core/System/templates/workSpaceBorderToolWindow.html',
-};
-
 let windowIndex = {};
 
 let zStack = [];
-
-let blockingWindows = [];
 
 let calculateZIndexLevel = function(window) {
     if ( window._stackMode === 'alwaysBehind') {
@@ -27,68 +18,24 @@ let calculateZIndexLevel = function(window) {
     }else if (window._stackMode === 'alwaysOnTop') {
         return zStack.length + BASIC_ZINDEX;
     } else {
-        return (zStack.indexOf(window) || ZINDEX_IS_UNDEFINED) + BASIC_ZINDEX;
+        return (zStack.indexOf(window) || ZINDEX_IS_UNDEFINED) + BASIC_ZINDEX;
     }
-};
-
-const CollisionTypes = { HORIZONTAL : 0, VERTICAL : 1 };
-
-/**
- * @param {Object} window - rect representation of a window
- * @param {number} type - the direction type
- * @param {number} newValue - the new value which should be applied
- * @return {boolean} - when ever the new value will cause the window to collide
- */
-let checkCollision = function(window, type, newValue) {
-    let result = blockingWindows.find(item => {
-        let willEnterX = (item.x <= newValue && newValue <= (item.x + item.width))
-                         || (item.x >= newValue && item.x <= (newValue + window.width));
-
-        let isInX = (item.x <= window.x && window.x <= (item.x + item.width))
-                    || (item.x >= window.x && item.x <= (window.x + window.width));
-
-        let willEnterY = (item.y <= newValue && newValue <= (item.y + item.height))
-                         || (item.y >= newValue && item.y <= (newValue + window.height));
-
-        let isInY = (item.y <= window.y && window.y <= (item.y + item.height))
-                    || (item.y >= window.y && item.y <= (window.y + window.height));
-
-        if (type === CollisionTypes.HORIZONTAL && willEnterX && isInY) {
-            return true;
-        }
-
-        if (type === CollisionTypes.VERTICAL && willEnterY && isInX) {
-            return true;
-        }
-
-        return false;
-    });
-
-    return !!result;
-};
-
-let getViewBoxFromWindow = function(window) {
-    return {
-        get x() { return window._view.position.x },
-        get y() { return window._view.position.y },
-        get height() { return window._view.dimension.height },
-        get width() { return window._view.dimension.width },
-    };
 };
 
 /**
  * @extends Af.Prototypes.EventTarget
  */
-let ApplicationWindow = Make(/** @lends ApplicationWindow.prototype */{
+const ApplicationWindow = {
 
     /**
      * @type {viewPortInstance}
      */
     viewPort : null,
     state : null,
+    type : null,
     _view : null,
-    _template : null,
     _stackMode : 'normal',
+    _blocksScreen: false,
     _app : null,
 
     /**
@@ -97,12 +44,27 @@ let ApplicationWindow = Make(/** @lends ApplicationWindow.prototype */{
      * @param {string} applicationName - name of the application
      * @return {void}
      */
-    _make : function(type, applicationName){
+    _make(type, applicationName){
         EventTarget._make.apply(this);
 
         this._view = Make(ApplicationWindowView)(this, applicationName);
         this._app = applicationName;
-        this._template = templates[type];
+        this.type = type;
+        this.viewPort = {
+            _window: this,
+            _dirty: false,
+            bind: ({ template, view = {}, }) => {
+                this._view._contentTemplate = template;
+                this._view._contentView = view;
+            },
+
+            update() {
+                this._dirty = true;
+                this._window.emit('change', this);
+            },
+
+            get scope() { return this._window._view._contentView; },
+        };
     },
 
     /**
@@ -127,14 +89,9 @@ let ApplicationWindow = Make(/** @lends ApplicationWindow.prototype */{
      *
      * @return {void}
      */
-    close : function(){
-        this.emit('windowClose');
-
-        this.viewPort.destory();
-        System.ViewPort.free(this.viewPort);
-
-        this._view.__destroy__();
-        this._view.__cleanElements__();
+    close() {
+        this._view._contentTemplate = null;
+        this.emit('change');
 
         let index = zStack.indexOf(this);
         zStack.splice(index, REMOVE_ONE_ITEM);
@@ -142,7 +99,7 @@ let ApplicationWindow = Make(/** @lends ApplicationWindow.prototype */{
         index = windowIndex[this._app].indexOf(this);
         windowIndex[this._app].splice(index, REMOVE_ONE_ITEM);
 
-
+        this.emit('close');
     },
 
     /**
@@ -156,7 +113,8 @@ let ApplicationWindow = Make(/** @lends ApplicationWindow.prototype */{
 
     set title(value) {
         this._view.name = value;
-        this._view.__apply__();
+
+        this.emit('change', this);
     },
 
     get scope() {
@@ -164,23 +122,28 @@ let ApplicationWindow = Make(/** @lends ApplicationWindow.prototype */{
     },
 
     apperanceMode : function(mode) {
-        if (mode === 'screenBlocking' && hasPrototype(this, WorkSpaceBorderToolWindow)) {
-            blockingWindows.push(getViewBoxFromWindow(this));
-        }
-
+        this._blocksScreen = (mode === 'screenBlocking' && hasPrototype(this, WorkSpaceBorderToolWindow));
         this._stackMode = mode;
+
+        this.emit('change', this);
     },
 
     setDimension : function(width, height) {
         this._view.dimension.height = height;
         this._view.dimension.width = width;
+
+        this.emit('change', this);
     },
 
     setPosition : function(x, y) {
         this._view.position.x = x;
         this._view.position.y = y;
+
+        this.emit('change', this);
     },
-}, EventTarget).get();
+
+    __proto__: EventTarget,
+};
 
 /**
  * @lends ApplicationWindowView.prototype
@@ -214,18 +177,8 @@ let ApplicationWindowView = {
      */
     dimension : null,
 
-    /**
-     * calculates the current style attribute for the window.
-     *
-     * @return {string} the value of the style attribute.
-     */
-    calculateStyle: function() {
-        let position = `transform: translate3D(${this.position.x}px, ${this.position.y}px, 0);`;
-        let dimensions = `height: ${this.dimension.height}px; width: ${this.dimension.width}px;`;
-        let zIndex = `z-index: ${this._getZIndex()};`;
-
-        return `${position} ${dimensions} ${zIndex}`;
-    },
+    _contentView: null,
+    _contentTemplate: null,
 
     /**
      * @constructs
@@ -238,145 +191,117 @@ let ApplicationWindowView = {
         this.window = window,
         this.name = applicationName;
         this._getZIndex = calculateZIndexLevel.bind(null, window);
-        this.closeWindow = window.close.bind(this);
-        this.position = { x : 150, y : 150 };
-        this.dimension = { height : 500, width : 300 };
-        this.windowDrag =  Make({}, this.windowDrag).get();
+        this.closeWindow = window.close.bind(window);
+        this.position = {
+            _x: 150,
+            _y: 150,
+
+            get x() { return this._x; },
+            set x(value) {
+                this._x = value;
+            },
+
+            get y() { return this._y; },
+            set y(value) {
+                this._y = value;
+            }
+        };
+        this.dimension = { height : 500, width : 600 };
         this.calculateStyle = this.calculateStyle;
     },
-
-    windowDrag : {
-        active : false,
-        localOffset : { x: 0, y: 0},
-        listener: null,
-
-        /**
-         * picks up a window
-         *
-         * @this ApplicationWindow#_view
-         * @param  {MouseEvent} e the current mouse event
-         *
-         * @return {void}
-         */
-        grab : function(e) {
-            let offsetX = e.pageX - this.position.x;
-            let offsetY = e.pageY - this.position.y;
-
-            this.windowDrag.active = true;
-            this.windowDrag.listener = this.windowDrag.move.bind(this);
-            this.windowDrag.localOffset = { x: offsetX, y: offsetY };
-            window.addEventListener('mousemove', this.windowDrag.listener);
-        },
-
-        /**
-         * drops a window
-         *
-         * @this ApplicationWindow#_view
-         * @return {void}
-         */
-        drop : function() {
-            this.windowDrag.active = false;
-            window.removeEventListener('mousemove', this.windowDrag.listener);
-        },
-
-        /**
-         * @this ApplicationWindow._view
-         * @param {MouseEvent} e - the event object
-         *
-         * @return {void}
-         */
-        move : function(e) {
-            if (this.windowDrag.active && e.clientX > 0 && e.clientY > 0) {
-                let newX = e.pageX - this.windowDrag.localOffset.x;
-                let newY = e.pageY - this.windowDrag.localOffset.y;
-
-                if (!checkCollision(getViewBoxFromWindow(this.window), CollisionTypes.HORIZONTAL, newX)) {
-                    this.position.x = newX;
-                }
-
-                if (!checkCollision(getViewBoxFromWindow(this.window), CollisionTypes.VERTICAL, newY)) {
-                    this.position.y = newY;
-                }
-
-                this.__apply__(null, true);
-            }
-        }
-    }
 };
 
 let WorkSpaceBorderToolWindow = Make({
     _make : function(type, applicationName){
         ApplicationWindow._make.apply(this, [type, applicationName]);
+
         this._view.side = 'unset';
 
         this._view.isVisible = function(){
             return this.side !== 'unset';
-        }
+        };
+
+        this._view.position.x = null;
+        this._view.position.y = null;
+
+        this._view.dimension.height = null;
+        this._view.dimension.width = null;
     },
 
     dockTo : function(side) {
         this._view.side = side;
-        this._view.__apply__();
+        this._localScope && this._localScope.update();
     }
 
 }, ApplicationWindow).get();
 
-let WindowManager = Make({
+let WindowManager = {
     name : 'System::WindowManager',
     headless : false,
+    /**
+     * [rootView description]
+     * @type {Boolean}
+     */
     rootView : true,
-    view : null,
+    viewPort: null,
 
     icons : [{
         name : '32',
         src : './userSpace/theme/window-manager.svg',
     }],
 
-    init : function(window) {
+    /**
+     * [windowList description]
+     *
+     * @type {string} [description]
+     */
+    get windowList() { return zStack; },
+
+    init(window) {
         System.ApplicationManager.updateWindowManager(this.createApplicationWindow.bind(this));
 
         let [core] = System.ApplicationManager.getInstances('System::Core');
 
         core.on('ready', () => {
-            window.viewPort.destory();
-            window.viewPort.bind({ template : './core/System/templates/WindowManager.html' }).then(() => {
+            window.viewPort.bind({ template: 'window-manager-template', view: this });
 
-                console.log('WindowManager is ready!');
-
-                window.viewPort.scope.windowList = zStack;
-                this.view = window.viewPort.scope;
-
-                System.ApplicationManager.emit('WindowManager');
-            });
+            this.viewPort = window.viewPort;
+            System.ApplicationManager.emit('WindowManager');
+            console.log('WindowManager is ready!');
         });
     },
 
-    createApplicationWindow : function(application, type='mainWindow') {
+    /**
+     * [createApplicationWindow description]
+     * @param  {Application} application         [description]
+     * @param  {string} [type='mainWindow'] [description]
+     * @return {Promise}                     [description]
+     */
+    createApplicationWindow(application, type='mainWindow') {
         let prototype = ApplicationWindow;
 
         if (!windowIndex[application.name]) {
             windowIndex[application.name] = [];
         }
 
-        if (type == 'workSpaceBorderToolWindow') {
+        if (type == 'workSpaceBorderTool') {
             prototype = WorkSpaceBorderToolWindow;
         }
 
-        let window = Make(prototype)(type, application.name);
+        const window = Make(prototype)(type, application.name);
 
         windowIndex[application.name].push(window);
         zStack.push(window);
 
         console.log('atempting to create new window!');
 
-        this.view.__apply__();
+        window.on('change', () => this.viewPort.update());
+        this.viewPort.update();
 
-        return System.ApplicationManager.getViewPortInstance(window._view.id).then(viewPort => {
-            window.viewPort = viewPort;
+        return window;
+    },
 
-            return window;
-        });
-    }
-}, Application).get();
+    __proto__: Application,
+};
 
 export default WindowManager;

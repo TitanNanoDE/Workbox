@@ -1,17 +1,19 @@
-<style media="screen">
-    .workspace.bg {
-        left: 0;
-        top: 0;
-        height: 100%;
-        width: 100%;
-        background-repeat: no-repeat;
-        background-size: cover;
-        background-position: center;
-    }
+<template>
+    <style media="screen">
+        .workspace.bg {
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 100%;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
 
-    .view-port[scope-name="default"] {
-        overflow: hidden;
-    }
-</style>
+        .view-port[scope-name="default"] {
+            overflow: hidden;
+        }
+    </style>
 
-<div class="workspace bg" style="background-image: url('{{wallpaper}}')"></div>
+    <div class="workspace bg" style="background-image: url('{{view.wallpaper}}')"></div>
+</template>

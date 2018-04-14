@@ -1,6 +1,4 @@
-import Af from '../../../af/af.js';
-
-let { Make } = Af.Util;
+import { Make } from '../../../af/util/make';
 
 let CallStack = {
 

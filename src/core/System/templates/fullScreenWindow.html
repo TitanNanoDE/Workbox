@@ -1,12 +1,19 @@
-<style media="screen">
-    .window.fullscreen {
-        left: 0;
-        top: 0;
-        width: 100vw;
-        height: 100vh;
-    }
-</style>
+<template>
+    <style media="screen">
+        :host([type="fullScreen"]) {
+            display: block;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+        }
 
-<div class="window fullscreen" style="z-index: {{_getZIndex()}}">
-    <view-port scope-name="{{id}}"></view-port>
-</div>
+        :host([type="fullScreen"]) ::slotted(*) {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+
+    <slot></slot>
+</template>

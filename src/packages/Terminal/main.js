@@ -1,8 +1,7 @@
 export default function(SystemAPI){
-    let { Make } = SystemAPI.Tools;
     let { Application } = SystemAPI.Prototypes;
 
-    let Terminal = Make({
+    let Terminal = {
 
         name : 'System::Terminal',
 
@@ -14,22 +13,25 @@ export default function(SystemAPI){
             this.cache = [];
         },
 
-        init : function(window){
-            this.view = window.viewPort.bind({
-                template : './packages/Terminal/Template.html'
-            });
+        init : function(window) {
+            const { cache } = this;
 
-            this.view.scope.lineBuffer = this.cache;
+            this.view = {
+                get lineBuffer() { return cache; }
+            };
+
+            window.viewPort.template = 'terminal-template';
+            window.viewPort.view = this.view;
 
             SystemAPI.Log.connect(item => {
                 this.cache.push(item);
 
-                this.view.update();
+                window.viewPort.update();
             });
-        }
+        },
 
-
-    }, Application).get();
+        __proto__: Application,
+    };
 
     return Terminal;
-};
+}

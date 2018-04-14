@@ -1,14 +1,59 @@
-<style>
+<template>
+    <style>
 
-.workspace.main-menu {
-    width: 100vw;
-    background-color: rgba(255, 255, 255, .8);
-    font-weight: 600;
-    color: black;
-    height: 1rem;
-    padding: 1rem 0;
-}
+        .workspace.main-menu {
+            width: 100vw;
+            background-color: rgba(255, 255, 255, .7);
+            font-weight: 400;
+            color: black;
+            padding: 0 10px;
+            list-style: none;
+            margin: 0;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
 
-</style>
+        .workspace.main-menu .item {
+            padding: 3px 10px;
+            display: inline-block;
+            position: relative;
+        }
 
-<div class="workspace main-menu"></div>
+        .workspace.main-menu .item:hover,
+        .workspace.main-menu .item:focus {
+            background-color: rgba(0, 0, 0, .2);
+            outline: none;
+        }
+
+        .workspace.main-menu .sub-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            padding: 5px 0;
+            background-color: rgba(255, 255, 255, .7);
+            border-bottom-left-radius: 2px;
+            border-bottom-right-radius: 2px;
+            min-width: 200px;
+        }
+
+        .workspace.main-menu .sub-menu .item {
+            padding: 5px 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .workspace.main-menu .item:not(:focus) .sub-menu {
+            display: none;
+        }
+
+    </style>
+
+    <ul class="workspace main-menu">
+        <li class="item" tabindex="0">
+            <system-icon name="home"></system-icon>
+            <ul class="sub-menu">
+                <li class="item">About</class>
+            </ul>
+        </li>
+    </ul>
+</template>

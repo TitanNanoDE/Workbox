@@ -1,9 +1,9 @@
-import Tools from './SystemAPI/Tools.js';
-import Log from './System/Log.js';
-import Windows from './SystemAPI/Windows.js';
-import Application from '../af/core/prototypes/Application.js';
-import Applications from './SystemAPI/Applications.js';
-import FileSystem from './SystemAPI/FileSystem.js';
+import Tools from './SystemAPI/Tools';
+import Log from './System/Log';
+import Windows from './SystemAPI/Windows';
+import Application from '../af/core/Application';
+import Applications from './SystemAPI/Applications';
+import FileSystem from './SystemAPI/FileSystem';
 
 let SystemAPI = {
     Tools : Tools,

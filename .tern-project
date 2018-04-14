@@ -3,7 +3,20 @@
   "libs": [
     "browser"
   ],
-  "loadEagerly": [
-    "src/"
-  ]
+  "plugins": {
+    "complete_strings": {
+      "maxLength": 15
+    },
+    "doc_comment": {
+      "fullDocs": true,
+      "strong": true
+    },
+    "node_resolve": {},
+    "modules": {
+      "load": "",
+      "modules": ""
+    },
+    "es_modules": {},
+    "commonjs": {}
+  }
 }

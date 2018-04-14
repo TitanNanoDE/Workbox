@@ -1,80 +1,97 @@
-<style media="screen">
-    .window.mainWindow {
-        user-select: none;
-        -moz-user-select: none;
-        -webkit-user-select: none;
-    }
+<template>
+    <style media="screen">
+        :host {
+            display: block;
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            height: 100%;
+            width: 100%;
+            overflow: auto;
+        }
 
-    .fileGrid {
-        display: flex;
-        flex: 1 1 100%;
-        background-color: #f0f0f0;
-        flex-wrap: wrap;
-        align-items: flex-start;
-        justify-content: space-between;
-        overflow: auto;
-    }
+        .file-manager-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
 
-    .fileGrid .item {
-        padding: 1rem 2.5rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 11.5rem;
-    }
+        .fileGrid {
+            display: flex;
+            flex: 1 1 100%;
+            background-color: #f0f0f0;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            overflow: auto;
+        }
 
-    .fileGrid .file {
-        height: 1em;
-        width: 1em;
-        font-size: 6rem;
-        background-size: contain;
-        background-repeat: no-repeat;
-    }
+        .fileGrid .item {
+            padding: 1rem 2.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 11.5rem;
+        }
 
-    .fileGrid .file.dirType {
-        background-image: url('./userSpace/theme/folder.svg');
-        cursor: pointer;
-    }
+        .fileGrid .file {
+            height: 1em;
+            width: 1em;
+            font-size: 6rem;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
 
-    .fileGrid .file.fileType {
-        background-image: url('./userSpace/theme/type-file.svg');
-    }
+        .fileGrid .file.dirType {
+            background-image: url('./userSpace/theme/folder.svg');
+            cursor: pointer;
+        }
 
-    .fileGrid .name {
-        font-size: 1.3rem;
-        text-align: center;
-        word-break: break-all;
-        margin-top: .7rem;
-    }
+        .fileGrid .file.fileType {
+            background-image: url('./userSpace/theme/type-file.svg');
+        }
 
-    .toolbar-icon {
-        font-size: 3rem;
-        height: 1em;
-        width: 1em;
-        color: #4d4848;
-        cursor: pointer;
-    }
+        .fileGrid .name {
+            font-size: 1.3rem;
+            text-align: center;
+            word-break: break-all;
+            margin-top: .7rem;
+        }
 
-    .toolbar-icon[disabled] {
-        pointer-events: none;
-        color: rgba(77, 72, 72, 0.37);
-    }
+        .toolbar-icon {
+            font-size: 3rem;
+            height: 1em;
+            width: 1em;
+            color: #4d4848;
+            cursor: pointer;
+        }
 
-    .toolbar-icon:hover {
-        color: #2c78b9;
-    }
-</style>
+        .toolbar-icon[disabled] {
+            pointer-events: none;
+            color: rgba(77, 72, 72, 0.37);
+        }
 
+        .toolbar-icon:hover {
+            color: #2c78b9;
+        }
+    </style>
 
-<div class="toolbar">
-    <div class="material-icons toolbar-icon" bind-events="{ click : goBack }" bind-enabled="history.canGoBack">arrow_back</div>
-    <div class="material-icons toolbar-icon" bind-events="{ click : goForward }" bind-enabled="history.canGoForward">arrow_forward</div>
-</div>
-<div class="fileGrid">
-    <template repeat="item in currentDir" replace>
-        <div class="item" bind-events="{ click : openDir }">
-            <div class="file {{addDirClass()}}{{addFileClass()}}"></div>
-            <div class="name">{{item.name}}</div>
+    <div class="file-manager-container">
+        <div class="toolbar">
+            <div class="material-icons toolbar-icon"
+                bind-event(click)="view.goBack"
+                bind-enabled="view.history.canGoBack">arrow_back</div>
+            <div class="material-icons toolbar-icon"
+                bind-event(click)="view.goForward"
+                bind-enabled="view.history.canGoForward">arrow_forward</div>
         </div>
-    </template>
-</div>
+        <div class="fileGrid">
+            <template bind-repeat="item in view.currentDir">
+                <div class="item" bind-event(click)="view.openDir">
+                    <div class="file {{view.addDirClass(item)}}{{view.addFileClass(item)}}"></div>
+                    <div class="name">{{item.name}}</div>
+                </div>
+            </template>
+        </div>
+    </div>
+</template>

@@ -7,7 +7,24 @@
         <link rel="stylesheet" href="./core/styles/google-material-icons.css">
     </head>
     <body>
-        <view-port scope-name="default"></view-port>
+        <template id="main-view" replace>
+            <view-port bind-attr(view)="view._defaultView"
+                bind-attr(template)="view._defaultViewTemplateRef"
+                bind-getter(update)="view._viewPortUpdate"></view-port>
+        </template>
+
+        <template id="terminal-template" src="./core/System/templates/Terminal.html"></template>
+        <template id="window-manager-template" src="./core/System/templates/WindowManager.html"></template>
+        <template id="application-window-template" src="./core/System/templates/ApplicationWindow.html"></template>
+        <template id="work-space-background-template" src="./core/System/templates/WorkSpaceBackground.html"></template>
+        <template id="work-space-main-menu-template" src="./core/System/templates/WorkSpaceMainMenu.html"></template>
+        <template id="work-space-file-manager-template" src="./core/System/templates/WorkSpaceFileManager.html"></template>
+        <template id="full-screen-window-template" src="./core/System/templates/fullScreenWindow.html"></template>
+        <template id="work-space-border-tool-window-template" src="./core/System/templates/workSpaceBorderToolWindow.html"></template>
+        <template id="work-space-dock-template" src="./core/System/templates/WorkSpaceDock.html"></template>
+        <template id="window-manager-ce-template" src="./core/System/templates/WindowManagerCE.html"></template>
+        <template id="system-icon-template" src="./core/System/templates/SystemIcon.html"></template>
+
         <script src="app.js"></script>
     </body>
 </html>

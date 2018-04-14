@@ -1,8 +1,13 @@
+import '../bindings/GetterBinding';
+import '../components/ViewPort';
+import '../components/ApplicationWindow';
+import '../components/EncapsulatedContent';
+import '../components/WindowManager';
+import '../components/SystemIcon';
 import ApplicationManager from './System/ApplicationManager.js';
 import Log from './System/Log.js';
 import PackageLoader from './System/PackageLoader.js';
 import SystemCore from './System/modules/Core.js';
-//import systemjs from 'es6-module-loader';
 import SystemHandlers from './System/SystemHandlers.js';
 import ViewPort from './System/ViewPort.js';
 

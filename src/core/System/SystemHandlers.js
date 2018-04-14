@@ -1,4 +1,4 @@
-import ErrorHandler from './SystemHandlers/ErrorHandler.js';
+import ErrorHandler from './SystemHandlers/ErrorHandler';
 
 let SystemHandlers = {
     ErrorHandler : ErrorHandler

@@ -1,8 +1,8 @@
-import { Make } from '../../../af/util/make.js';
-import System from '../../System.js';
-import Application from '../../../af/core/prototypes/Application.js';
+import { Make } from '../../../af/util/make';
+import System from '../../System';
+import Application from '../../../af/core/Application';
 //import NetworkRequest from '../../../af/core/prototypes/NetworkRequest.js';
-import SystemModules from '../modules.js';
+import SystemModules from '../modules';
 
 let SystemCore = Make({
 
@@ -43,13 +43,12 @@ let SystemCore = Make({
             fileSystem.writeFile(`/tmp/${Date.now()}.log`, `system start!! ~ so wow!! ${new Date()}`);
 
             dirIndex = Object.keys(fileSystem.ls('/tmp/'));
-//            this._logger.log(dirIndex);
 
-            fileSystem.readFile(`/tmp/${dirIndex[Math.round(Math.random() * dirIndex.length)]}`)
-                .then(file => {
-                    this._logger.log(file);
-                    this.emit('ready');
-                });
+            return fileSystem.readFile(`/tmp/${dirIndex[Math.round(Math.random() * dirIndex.length)]}`);
+        }).then(file => {
+            this._logger.log(file);
+            this._logger.log('initializing...');
+            setTimeout(() => this.emit('ready'), 3000);
         });
     },
 

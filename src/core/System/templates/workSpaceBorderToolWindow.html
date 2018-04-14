@@ -1,20 +1,26 @@
-<style media="screen">
-    .window.workspace-border-tool[orientation="left"] {
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-    }
+<template>
+    <style media="screen">
+        :host([type="workSpaceBorderTool"]) {
+            display: block;
+            position: absolute;
+        }
 
-    .window.workspace-border-tool[orientation="top"] {
-        top: 0;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-</style>
+        :host([type="workspaceBorderTool"][orientation="left"]) {
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
 
-<div class="window workspace-border-tool" style="z-index: {{_getZIndex()}}"
-     bind-display="isVisible()" orientation="{{side}}"
-     bind-style="{dimensions.left: position.x, dimensions.top: position.y,
-                 dimensions.height: dimension.height, dimensions.width: dimension.width}">
-    <view-port scope-name="{{id}}"></view-port>
-</div>
+        :host([type="workspaceBorderTool"][orientation="top"]) {
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        ::slotted(encapsulated-content) {
+            overflow: visible;
+        }
+    </style>
+
+    <slot></slot>
+</template>

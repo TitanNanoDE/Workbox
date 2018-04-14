@@ -1,10 +1,9 @@
-import Af from '../../../af/af.js';
-import FileSystemDriver from '../../../af/modules/fileSystem.js';
-import { Plugins } from '../../../af/modules/fileSystem.js';
-import System from '../../System.js';
+import FileSystemDriver from '../../../af/modules/fileSystem';
+import { Plugins } from '../../../af/modules/fileSystem';
+import System from '../../System';
+import { Make } from '../../../af/util/make';
+import Application from '../../../af/core/Application';
 
-let { Make } = Af.Util;
-let { Application } = Af.Prototypes;
 let fileTree = null;
 let volumes = [];
 let logger = null;

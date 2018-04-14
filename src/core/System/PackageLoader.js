@@ -1,5 +1,3 @@
-'use strict';
-
 import SystemAPI from '../SystemAPI.js';
 
 let PackageLoader = {

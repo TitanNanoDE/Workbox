@@ -1,9 +1,8 @@
-import SystemAPI from '../../SystemAPI.js';
+import SystemAPI from '../../SystemAPI';
 
-let { Application } = SystemAPI.Prototypes;
-let { Make } = SystemAPI.Tools;
+const { Application } = SystemAPI.Prototypes;
 
-let mapDirectoryIndex = function(index) {
+const mapDirectoryIndex = function(index) {
     return Object.keys(index).map(key => {
         return {
             name : key,
@@ -13,120 +12,107 @@ let mapDirectoryIndex = function(index) {
     });
 };
 
-let createFileMangerWindow = function(application){
-    SystemAPI.Windows.createWindow(application, 'mainWindow').then(window => {
-        return window.viewPort.bind({ template : WorkSpace.templates.FileManagerWindow }).then(() => window);
-    }).then((window) => {
-        window.scope.goToPath = function(path) {
-            let scope = this.__parentScope__ || this;
+const createFileMangerWindow = function(application) {
+    const window = SystemAPI.Windows.createWindow(application, 'default');
+    window.viewPort.bind({ template : WorkSpace.templates.FileManagerWindow });
+    window.scope.goToPath = function(path) {
+        let scope = this.__parentScope__ || this;
 
-            scope.currentPath = path;
-            window.title = scope.currentPath;
-            scope.currentDir = mapDirectoryIndex(SystemAPI.FileSystem.ls(scope.currentPath));
+        scope.currentPath = path;
+        window.title = scope.currentPath;
+        scope.currentDir = mapDirectoryIndex(SystemAPI.FileSystem.ls(scope.currentPath));
 
-            scope.history.stack = scope.history.stack.slice(0, scope.history.cursor + 1);
-            scope.history.stack.push(scope.currentPath);
-            scope.history.cursor = scope.history.stack.length - 1;
-        };
+        scope.history.stack = scope.history.stack.slice(0, scope.history.cursor + 1);
+        scope.history.stack.push(scope.currentPath);
+        scope.history.cursor = scope.history.stack.length - 1;
+    };
 
-        window.scope.openDir = function() {
-            if (this.item.isDir) {
-                this.goToPath(`${this.currentPath}${this.item.name}/`);
-            }
+    window.scope.openDir = function(event, scope) {
+        if (scope.item.isDir) {
+            this.goToPath(`${this.currentPath}${scope.item.name}/`);
         }
 
-        window.scope.moveToCursor = function() {
-            let path = this.history.stack[this.history.cursor];
+        scope.__parentScope__.update();
+    };
 
-            this.currentPath = path;
-            window.title = path;
-            this.currentDir = mapDirectoryIndex(SystemAPI.FileSystem.ls(path));
+    window.scope.moveToCursor = function() {
+        let path = this.history.stack[this.history.cursor];
+
+        this.currentPath = path;
+        window.title = path;
+        this.currentDir = mapDirectoryIndex(SystemAPI.FileSystem.ls(path));
+    };
+
+    window.scope.goBack = function() {
+        if (this.history.canGoBack) {
+            this.history.cursor -= 1;
+
+            this.moveToCursor();
         }
+    };
 
-        window.scope.goBack = function() {
-            if (this.history.canGoBack) {
-                this.history.cursor -= 1;
+    window.scope.goForward = function() {
+        if (this.history.canGoForward) {
+            this.history.cursor += 1;
 
-                this.moveToCursor();
-            }
+            this.moveToCursor();
         }
+    };
 
-        window.scope.goForward = function() {
-            if (this.history.canGoForward) {
-                this.history.cursor += 1;
+    window.scope.addDirClass = function(item) {
+        return item.isDir && 'dirType' || '';
+    };
 
-                this.moveToCursor();
-            }
+    window.scope.addFileClass = function(item) {
+        return item.isFile && 'fileType' || '';
+    };
+
+    window.scope.history = {
+        stack : [],
+        cursor : 0,
+
+        get canGoBack() {
+            return this.cursor > 0;
+        },
+
+        get canGoForward() {
+            return this.cursor > -1 && this.cursor < (this.stack.length - 1);
         }
+    };
 
-        window.scope.addDirClass = function() {
-            return this.item.isDir && 'dirType' ||　'';
-        };
-
-        window.scope.addFileClass = function() {
-            return this.item.isFile && 'fileType' ||　'';
-        }
-
-        window.scope.history = {
-            stack : [],
-            cursor : 0,
-
-            get canGoBack() {
-                return this.cursor > 0;
-            },
-
-            get canGoForward() {
-                return this.cursor > -1 && this.cursor < (this.stack.length - 1);
-            }
-        };
-
-        window.scope.goToPath('/');
-        window.scope.__apply__();
-    });
+    window.scope.goToPath('/');
+    window.viewPort.update();
 };
 
 let createMainMenuWindow = function(application) {
-    SystemAPI.Windows.createWindow(application, 'workSpaceBorderToolWindow').then(window => {
-        return window.viewPort.bind({ template : WorkSpace.templates.MainMenuWindow }).then(() => window);
-    }).then((window) => {
+    const window = SystemAPI.Windows.createWindow(application, 'workSpaceBorderTool');
 
-        window.scope.currentMainMenu = {};
+    window.viewPort.bind({ template: WorkSpace.templates.MainMenuWindow });
+    window.scope.currentMainMenu = {};
+    window.scope.primaryEntryClick = function() {};
+    window.scope.subEntryClick = function(){};
+    window.dockTo('top');
+    window.apperanceMode('screenBlocking');
+};
 
-        window.scope.primaryEntryClick = function() {
+const WorkSpace = {
 
-        };
-
-        window.scope.subEntryClick = function(){
-
-        };
-
-        window.dockTo('top');
-        window.apperanceMode('screenBlocking');;
-    });
-}
-
-let WorkSpace = Make({
-
-    name : 'System::WorkSpace',
-
-    displayName : 'File Manager',
-
+    name: 'System::WorkSpace',
+    displayName: 'File Manager',
     noMainWindow: true,
+    icons: [{ name : '32', src : './userSpace/theme/file-manager.svg'}],
+    windows: null,
+    backgroundWindow: null,
+    dock: null,
 
-    icons : [{ name : '32', src : './userSpace/theme/file-manager.svg'}],
-
-    templates : {
-        backgroundWindow : './core/System/templates/WorkSpaceBackground.html',
-        FileManagerWindow : './core/System/templates/WorkSpaceFileManager.html',
-        dock             : './core/System/templates/WorkSpaceDock.html',
-        MainMenuWindow : './core/System/templates/WorkSpaceMainMenu.html',
+    templates: {
+        backgroundWindow: 'work-space-background-template',
+        FileManagerWindow: 'work-space-file-manager-template',
+        dock: 'work-space-dock-template',
+        MainMenuWindow: 'work-space-main-menu-template',
     },
 
-    windows : null,
-    backgroundWindow : null,
-    dock : null,
-
-    init : function() {
+    init() {
 
         this.windows = {
             /** @type {ApplicationWindow} */
@@ -134,42 +120,35 @@ let WorkSpace = Make({
             dock : null,
         };
 
-        SystemAPI.Windows.createWindow(this, 'fullScreen').then(window => {
-            this.windows.backgroundWindow = window;
+        this.windows.backgroundWindow = SystemAPI.Windows.createWindow(this, 'fullScreen');
+        this.windows.backgroundWindow.viewPort.bind({ template : this.templates.backgroundWindow });
+        this.windows.backgroundWindow.apperanceMode('alwaysBehind');
+        this.backgroundWindow = this.windows.backgroundWindow.viewPort.scope;
 
-            return this.windows.backgroundWindow.viewPort.bind({ template : this.templates.backgroundWindow });
-        }).then(() => {
-            this.windows.backgroundWindow.apperanceMode('alwaysBehind');
-            this.backgroundWindow = this.windows.backgroundWindow.viewPort.scope;
+        // Load the wallpaper
+        this.backgroundWindow.wallpaper = './userSpace/the-roaming-platypus-310824-unsplash.jpg';
 
-            // Load the wallpaper
-            this.backgroundWindow.wallpaper = './userSpace/prairie_mountains-1366x768.jpg';
-        });
+        this.windows.dock = SystemAPI.Windows.createWindow(this, 'workSpaceBorderTool');
+        this.windows.dock.viewPort.bind({ template : this.templates.dock });
+        this.dock = this.windows.dock.viewPort.scope;
 
-        SystemAPI.Windows.createWindow(this, 'workSpaceBorderToolWindow').then(window => {
-            this.windows.dock = window;
+        this.windows.dock.dockTo('left');
+        this.windows.dock.apperanceMode('alwaysOnTop');
 
-            return this.windows.dock.viewPort.bind({ template : this.templates.dock });
-        }).then(() => {
-            this.dock = this.windows.dock.viewPort.scope;
+        let applications = SystemAPI.Applications.getActiveApplicationList();
 
-            this.windows.dock.dockTo('left');
-            this.windows.dock.apperanceMode('alwaysOnTop');
-            this.windows.dock.viewPort.alowOverflow();
+        this.dock.itemList = applications.filter(application => !application.headless)
+            .map(application => {
+                let icon = application.icons.find(icon => icon.name === '32');
 
-            let applications = SystemAPI.Applications.getActiveApplicationList();
+                return {
+                    displayName : application.displayName || application.name,
+                    name : application.name,
+                    icon : icon && icon.src,
+                };
+            });
 
-            this.dock.itemList = applications.filter(application => !application.headless)
-                .map(application => {
-                    let icon = application.icons.find(icon => icon.name === '32');
-
-                    return {
-                        displayName : application.displayName || application.name,
-                        name : application.name,
-                        icon : icon && icon.src,
-                    };
-                });
-        });
+        this.windows.dock.viewPort.update();
 
         createFileMangerWindow(this);
         createMainMenuWindow(this);
@@ -179,7 +158,7 @@ let WorkSpace = Make({
                 let isNew = !!this.dock.itemList.find(item => item.name === application.name);
 
                 if (isNew) {
-                    let icon = application.icons.find(icon => icon.name === '32')
+                    let icon = application.icons.find(icon => icon.name === '32');
 
                     application = {
                         displayName : application.displayName || application.name,
@@ -188,12 +167,15 @@ let WorkSpace = Make({
                     };
 
                     this.dock.itemList.push(application);
+                    this.windows.dock.viewPort.update();
                 }
             }
         });
 
-    }
+    },
 
-}, Application).get();
+    __proto__: Application,
+
+};
 
 export default WorkSpace;

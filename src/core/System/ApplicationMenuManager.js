@@ -1,7 +1,4 @@
-
-'use strict';
-
-let ApplicationMenuManager = {
+const ApplicationMenuManager = {
 
     registry : new WeakMap(),
 

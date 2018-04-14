@@ -1,13 +1,8 @@
-import Application from '../../af/core/prototypes/Application.js';
-import Af from '../../af/af.js';
-import { DataBinding } from '../../af/modules/DataBinding.js';
+import Application from 'application-frame/core/Application';
+import { DataBinding } from '@af-modules/databinding';
 
-let { Make } = Af.Util;
+const ViewPort = {
+};
 
-let ViewPortHost = Make({
-    name: 'ViewPortService',
-}, Application)();
-
-let ViewPort = Make(DataBinding.ViewPort)(ViewPortHost);
 
 export default ViewPort;

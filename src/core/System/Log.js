@@ -1,7 +1,7 @@
  'use strict';
 
-import { Make } from '../../af/util/make.js';
-import EventTarget from '../../af/core/prototypes/EventTarget.js';
+import { Make } from '../../af/util/make';
+import EventTarget from '../../af/core/EventTarget';
 
 let LogInterface = {
     _name : '',
@@ -13,8 +13,9 @@ let LogInterface = {
 
     /**
      * @constructs
-     * @param {string} name
-     * @param {LogEntry[]} buffer
+     * @param {string} name [description]
+     * @param {LogEntry[]} buffer [description]
+     * @return {void}
      */
     _make : function(name, buffer){
         this._name = name;

@@ -1,53 +1,55 @@
-<style media="screen">
-    .workspace.dock {
-        display: flex;
-        background-color: rgba(195, 195, 195, 0.65);
-        border-bottom-right-radius: 1rem;
-        border-top-right-radius: 1rem;
-        width: 7rem;
-        max-height: 90vh;
-        box-sizing: border-box;
-        padding: 1rem 0;
-        flex-direction: column;
-    }
+<template>
+    <style media="screen">
+        .workspace.dock {
+            display: flex;
+            background-color: rgba(195, 195, 195, 0.65);
+            border-bottom-right-radius: 1rem;
+            border-top-right-radius: 1rem;
+            width: 7rem;
+            max-height: 90vh;
+            box-sizing: border-box;
+            padding: 1rem 0;
+            flex-direction: column;
+        }
 
-    .workspace.dock .item {
-        width: 100%;
-        flex: 0 1 7rem;
-        position: relative;
-        box-sizing: border-box;
-        padding: .5rem;
-    }
+        .workspace.dock .item {
+            width: 100%;
+            flex: 0 1 7rem;
+            position: relative;
+            box-sizing: border-box;
+            padding: .5rem;
+        }
 
-    .workspace.dock .tooltip {
-        position: absolute;
-        left: 7.5rem;
-        top: 50%;
-        transform: translateY(-50%);
-        background-color: rgba(0, 0, 0, 0.80);
-        color: #fff;
-        padding: .5rem;
-        font-size: 1.3rem;
-    }
+        .workspace.dock .tooltip {
+            position: absolute;
+            left: 7.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.80);
+            color: #fff;
+            padding: .5rem;
+            font-size: 1.3rem;
+        }
 
-    .workspace.dock .icon {
-        height: 100%;
-        width: 100%;
-        background-size: contain;
-        background-position: center;
-        background-repeat: no-repeat;
-    }
+        .workspace.dock .icon {
+            height: 100%;
+            width: 100%;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
 
-    .workspace.dock .item:not(:hover) .tooltip {
-        display: none;
-    }
-</style>
+        .workspace.dock .item:not(:hover) .tooltip {
+            display: none;
+        }
+    </style>
 
-<div class="workspace dock">
-    <template repeat="item in itemList" replace>
-        <div class="item">
-            <div class="icon" style="background-image: url('{{item.icon}}')"></div>
-            <div class="tooltip">{{item.displayName}}</div>
-        </div>
-    </template>
-</div>
+    <div class="workspace dock">
+        <template bind-repeat="item in view.itemList">
+            <div class="item">
+                <div class="icon" style="background-image: url('{{item.icon}}')"></div>
+                <div class="tooltip">{{item.displayName}}</div>
+            </div>
+        </template>
+    </div>
+</template>

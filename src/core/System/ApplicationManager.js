@@ -1,9 +1,7 @@
-'use strict';
-
-import { Make } from '../../af/util/make.js';
-import Log from '../System/Log.js';
-import ViewPort from './ViewPort.js';
-import Application from '../../af/core/prototypes/Application.js';
+import { Make } from '../../af/util/make';
+import Log from '../System/Log';
+import DataBinding from '@af-modules/databinding';
+import Application from '../../af/core/Application';
 
 const IMEDIATE_INVOCE = 0;
 
@@ -25,7 +23,7 @@ let initApplication = function(instance, manager) {
     if (instance.noMainWindow) {
         init(null);
     } else {
-        manager.requestApplicationMainWindow(instance).then(init);
+        init(manager.requestApplicationMainWindow(instance));
     }
 };
 
@@ -51,33 +49,55 @@ let ApplicationInfo = {
     }
 };
 
-let ApplicationManager = Make({
+const ApplicationManager = {
 
     name: 'ApplicationManager',
 
-    _make : function(){
-        Application._make.apply(this);
+    _defaultViewTemplateRef: null,
+    _defaultView: null,
+    _fakeWindow: null,
+    _scope: null,
+    _viewPortUpdate() {},
+
+    constructor() {
+        super.constructor();
+        const { scope } = DataBinding.createTemplateInstance({ template: '#main-view', scope: this });
+
+        this._scope = scope;
 
         this.on('WindowManager', () => windowManagerReady = true);
+
+        // fake window
+        const fakeScope = () => this._defaultView;
+        const fakeUpdate = () => this._viewPortUpdate;
+
+        this._fakeWindow = {
+            viewPort: {
+                bind: ({ template, view = {} }) => {
+                    this._defaultViewTemplateRef = template;
+                    this._defaultView = view;
+                    this._scope.update();
+                },
+
+                get scope() { return fakeScope(); },
+                get update() { return fakeUpdate(); }
+            }
+        };
+
+        return this;
     },
 
     updateWindowManager : function(newMethod){
         this.requestApplicationMainWindow = newMethod;
     },
 
-    getApplication : function(){},
-
     /**
      * requests a new window from the window manager. The default method creates a fake window with the main viewport.
      *
-     * @return {Promise<Window>} - a promise for the window creation.
+     * @return {Window} - a promise for the window creation.
      */
-    requestApplicationMainWindow : function(){
-        return ViewPort.getInstance('default').then(viewPort => {
-            return {
-                viewPort : viewPort
-            };
-        });
+    requestApplicationMainWindow() {
+        return this._fakeWindow;
     },
 
     /**
@@ -137,10 +157,6 @@ let ApplicationManager = Make({
         return instanceList[appName];
     },
 
-    getViewPortInstance : function(...args){
-        return ViewPort.getInstance(...args);
-    },
-
     getApplication : function(name) {
         let application = Object.keys(registeredApplications).find(application => {
             return application.name === name;
@@ -158,7 +174,9 @@ let ApplicationManager = Make({
 
             return Make(ApplicationInfo)(application);
         });
-    }
-}, Application)();
+    },
 
-export default ApplicationManager;
+    __proto__: Application,
+};
+
+export default ApplicationManager.constructor();

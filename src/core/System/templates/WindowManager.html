@@ -1,13 +1,30 @@
-<style media="screen">
-    .view-port[scope-name="default"] {
-        background-color: black;
-    }
+<template>
+    <style media="screen">
+        .view-port[scope-name="default"] {
+            background-color: black;
+        }
+    </style>
 
-    .window {
-        position: absolute;
-    }
-</style>
-
-<template repeat="window in windowList" replace>
-    <template src="{{window._template}}" insert bind="window._view"></template>
+    <window-manager>
+        <template bind-repeat="window in view.windowList">
+            <application-window
+                bind-attr(height)="window._view.dimension.height"
+                bind-attr(width)="window._view.dimension.width"
+                bind-attr(top)="window._view.position.y=move"
+                bind-attr(left)="window._view.position.x=move"
+                bind-attr(type)="window.type"
+                bind-attr(orientation)="window._view.side"
+                bind-event(close)="window.close"
+                bind-event(minimize)="window.minimize"
+                bind-event(maximimize)="window.maximimize"
+                bind-attr(blocking)="window._blocksScreen"
+                bind-attr(order)="window._view._getZIndex()">
+                <span slot="title">{{window._view.name}}</span>
+                <encapsulated-content
+                    bind-attr(contentView)="window._view._contentView"
+                    bind-attr(template)="window._view._contentTemplate"
+                    bind-attr(dirty)="window.viewPort._dirty=clean"></encapsulated-content>
+            </application-window>
+        </template>
+    </window-manager>
 </template>

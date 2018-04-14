@@ -1,29 +1,32 @@
-<style media="screen">
-    .terminal {
-        background-color: black;
-        color: white;
-        font-family: monospace;
-        flex: 1 1 100%;
-    }
+<template>
+    <style media="screen">
+        .terminal {
+            background-color: black;
+            color: white;
+            font-family: monospace;
+            overflow: auto;
+            height: 100%;
+        }
 
-    .terminal .container {
-        margin: 10px;
-        word-break: break-all;
-    }
+        .terminal .container {
+            margin: 10px;
+            word-break: break-all;
+        }
 
-    .terminal div[type="error"] {
-        color: red;
-    }
+        .terminal div[type="error"] {
+            color: red;
+        }
 
-    .terminal div [type="success"] {
-        color: green;
-    }
-</style>
+        .terminal div [type="success"] {
+            color: green;
+        }
+    </style>
 
-<div class="terminal">
-    <div class="container">
-        <template repeat="line in lineBuffer" replace>
-            <div index="{{$index}}" type="{{line.type}}">{{line.content}}</div>
-        </template>
+    <div class="terminal">
+        <div class="container">
+            <template bind-repeat(fast)="line in view.lineBuffer">
+                <div index="{{$index}}" type="{{line.type}}">{{line.content}}</div>
+            </template>
+        </div>
     </div>
-</div>
+</template>
