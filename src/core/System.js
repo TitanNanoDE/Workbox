@@ -8,7 +8,7 @@ import ApplicationManager from './System/ApplicationManager.js';
 import Log from './System/Log.js';
 import PackageLoader from './System/PackageLoader.js';
 import SystemCore from './System/modules/Core.js';
-import SystemHandlers from './System/SystemHandlers.js';
+import SystemHandlers from './System/SystemHandlers';
 import ViewPort from './System/ViewPort.js';
 
 /**

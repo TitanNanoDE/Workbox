@@ -24,7 +24,7 @@ let SystemCore = Make({
 
         this.on('terminate', reason => {
             this._logger.error(`Died -> ${reason}`);
-        })
+        });
     },
 
     init : function(){
@@ -40,7 +40,7 @@ let SystemCore = Make({
             fileSystem.mount('/', volume);
             fileSystem.emit('ready');
 
-            fileSystem.writeFile(`/tmp/${Date.now()}.log`, `system start!! ~ so wow!! ${new Date()}`);
+            fileSystem.writeFile(`/tmp/${Date.now()}.log`, `system start!! ~ so wow!! ${new Date()}`);
 
             dirIndex = Object.keys(fileSystem.ls('/tmp/'));
 

@@ -1,4 +1,6 @@
+import System from '../../System';
 import SystemAPI from '../../SystemAPI';
+import UrlResolver from '../UrlResolver';
 
 const { Application } = SystemAPI.Prototypes;
 
@@ -91,6 +93,9 @@ let createMainMenuWindow = function(application) {
     window.scope.currentMainMenu = {};
     window.scope.primaryEntryClick = function() {};
     window.scope.subEntryClick = function(){};
+    window.scope.onAboutSystem = function() {
+        System.ApplicationManager.launch('system.js.about', WorkSpace.name);
+    };
     window.dockTo('top');
     window.apperanceMode('screenBlocking');
 };
@@ -144,7 +149,7 @@ const WorkSpace = {
                 return {
                     displayName : application.displayName || application.name,
                     name : application.name,
-                    icon : icon && icon.src,
+                    icon : icon && UrlResolver.resolve(icon.src),
                 };
             });
 
@@ -155,7 +160,7 @@ const WorkSpace = {
 
         SystemAPI.Applications.on('applicationLaunched', application => {
             if (!application.headless) {
-                let isNew = !!this.dock.itemList.find(item => item.name === application.name);
+                let isNew = !this.dock.itemList.find(item => item.name === application.name);
 
                 if (isNew) {
                     let icon = application.icons.find(icon => icon.name === '32');
@@ -163,7 +168,7 @@ const WorkSpace = {
                     application = {
                         displayName : application.displayName || application.name,
                         name : application.name,
-                        icon : icon && icon.src
+                        icon : icon && UrlResolver.resolve(icon.src),
                     };
 
                     this.dock.itemList.push(application);

@@ -2,6 +2,8 @@ import { Make } from '../../af/util/make';
 import Log from '../System/Log';
 import DataBinding from '@af-modules/databinding';
 import Application from '../../af/core/Application';
+import SystemHandlers from './SystemHandlers';
+import UrlResolver from './UrlResolver';
 
 const IMEDIATE_INVOCE = 0;
 
@@ -110,6 +112,14 @@ const ApplicationManager = {
 
         if (!registeredApplications[application.name]) {
             registeredApplications[application.name] = application;
+
+            if (application.resources) {
+                Object.entries(application.resources)
+                    .forEach(([key, value]) => {
+                        UrlResolver.packageResource(application.name, key, value);
+                    });
+            }
+
             logger.log(`Application ${application.name} registered!`);
         } else {
             logger.error(`Application "${application.name}" already exists!`);
@@ -126,9 +136,19 @@ const ApplicationManager = {
      * @return {void}
      */
     launch : function(appName, source) {
-        logger.log(`launching ${appName}...`);
 
-        let instance = Make(registeredApplications[appName])(source);
+        if (!registeredApplications[appName]) {
+            return SystemHandlers.ErrorHandler.applicationNotAvailable(appName);
+        }
+
+        if (instanceList[appName] && instanceList[appName].length > 0) {
+            logger.log(`Application ${appName} is already running!`);
+            return;
+        }
+
+        const instance = Make(registeredApplications[appName])(source);
+
+        logger.log(`launching ${appName}...`);
 
         if (!instanceList[appName]) {
             instanceList[appName] = [];

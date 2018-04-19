@@ -277,7 +277,7 @@ let WindowManager = {
      * @param  {string} [type='mainWindow'] [description]
      * @return {Promise}                     [description]
      */
-    createApplicationWindow(application, type='mainWindow') {
+    createApplicationWindow(application, type='default') {
         let prototype = ApplicationWindow;
 
         if (!windowIndex[application.name]) {

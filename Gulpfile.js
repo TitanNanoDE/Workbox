@@ -1,6 +1,5 @@
 const gulp 	 = require('gulp'),
     del = require('del'),
-    es = require('event-stream'),
     runSequence = require('run-sequence'),
     Webpack = require('webpack'),
     path = require('path'),
@@ -8,15 +7,41 @@ const gulp 	 = require('gulp'),
     systemModulesBuilder = require('./Gulp/systemModulesBuilder'),
     buildStage = require('./Gulp/buildStage'),
     bundleTemplates = require('gulp-bundle-templates');
+const rename = require('gulp-rename');
+const webpackStream = require('webpack-stream');
+const named = require('vinyl-named');
 
 gulp.task('clean', () => {
     return del(['dist']);
 });
 
-gulp.task('copyToDist', ['webpack'],  () => {
-    return es.merge(gulp.src(['src/**', '!src/**/*.js', '!src/**/*.html', '!src/**/node_modules/**'])
-        .pipe(gulp.dest('dist')));
+gulp.task('copy:userspace', [],  () => {
+    return gulp.src(['src/userSpace/**'])
+        .pipe(gulp.dest('dist/userSpace'));
 });
+
+gulp.task('copy:packages', [], () => {
+    return gulp.src(['src/packages/**/dist/package.js'])
+        .pipe(rename((path) => {
+            const packageName = path.dirname.match(/[^/]*/)[0];
+
+            path.dirname = '';
+            path.basename = packageName;
+        }))
+        .pipe(gulp.dest('dist/packages'));
+});
+
+gulp.task('copy:styles', [], () => {
+    return gulp.src('src/core/styles/**')
+        .pipe(gulp.dest('dist/styles'));
+});
+
+gulp.task('copy:fonts', [], () => {
+    return gulp.src('src/core/fonts/**')
+        .pipe(gulp.dest('dist/fonts'));
+});
+
+gulp.task('copy', ['copy:userspace', 'copy:styles', 'copy:fonts']);
 
 gulp.task('build:html', [], () => {
     return gulp.src('src/index.html')
@@ -36,19 +61,15 @@ gulp.task('webpack', [buildStage, systemModulesBuilder], (callback) => {
         },
         module: {
             rules: [{
-                use: [{
-                    loader: 'babel-loader',
-                    options : {
-                        presets: ['es2015'],
-                        sourceMaps: true,
-                    },
-                }],
-                test: /\.js$/,
+                test: /\.html$/,
+                use: ['dom-loader', 'html-loader']
             }],
         },
 
+        externals: ['fs'],
+
         plugins : [
-            new Webpack.IgnorePlugin(/vertx/)
+            new Webpack.IgnorePlugin(/vertx/),
         ],
 
         devtool : 'source-map',
@@ -59,10 +80,36 @@ gulp.task('webpack', [buildStage, systemModulesBuilder], (callback) => {
     });
 });
 
+gulp.task('build:packages', () => {
+    return gulp.src('src/packages/**/index.js')
+        .pipe(named((file) => {
+            const packageName = path.parse(file.path).dir.match(/[^/]*$/)[0];
+
+            return packageName;
+        }))
+        .pipe(webpackStream({
+            output: {
+                filename: path.join('[name].js'),
+                libraryTarget: 'umd',
+                library: '[name]',
+            },
+
+            module: {
+                rules: [{
+                    test: /\.html$/,
+                    use: ['html-loader']
+                }],
+            },
+
+            externals: ['System']
+        }))
+        .pipe(gulp.dest('dist/packages/'));
+});
+
 gulp.task('watch', ['default'], () => {
     gulp.watch(['src/**/*.*'], ['copyToDist']);
 });
 
 gulp.task('default', (cb) => {
-    runSequence('clean', ['copyToDist', 'build:html'], cb);
+    runSequence('clean', ['copy', 'build:html', 'build:packages', 'webpack'], cb);
 });

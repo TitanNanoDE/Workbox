@@ -1,4 +1,5 @@
 import { Make } from '../../../af/util/make';
+import System from '../../System';
 
 let CallStack = {
 
@@ -15,7 +16,7 @@ let CallStack = {
         this.rawStack.shift();
 
         this.rawStack = this.rawStack.map(item => {
-            return { 
+            return {
                 call : item.split('@')[0],
                 source : item.split('@')[1]
             };
@@ -34,12 +35,24 @@ let CallStack = {
 };
 
 let ErrorHandler = {
-    methodNotImplemented : function(prototypeName='Object'){
+    methodNotImplemented(prototypeName='Object') {
         let stack = Make(CallStack)();
 
         stack.drop();
 
-        console.error(`A child prototype of ${prototypeName} does not implement the required method ${stack.item(0).call}`);
+        console.error(`A child prototype of ${prototypeName} does not implement the required method ${stack.item(0).call}`);
+    },
+
+    applicationNotAvailable(application) {
+        System.Log.use('ErrorHandler').error(`Application ${application} is not available on this system!`);
+    },
+
+    unknownSystemHandlerType(type) {
+        System.Log.use('ErrorHandler').error(`Unknown system handler type: ${type}`);
+    },
+
+    unknownSystemHandler(name) {
+        System.Log.use('ErrorHandler').error(`Unknown system handler: ${name}`);
     }
 };
 

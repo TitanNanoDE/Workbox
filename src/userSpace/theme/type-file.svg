@@ -1,15 +1,24 @@
-
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="128px" height="128px" viewBox="0 0 128 128" version="1.1">
-<g id="surface1">
-<path style=" stroke:none;fill-rule:nonzero;fill:rgb(86.27451%,86.27451%,86.27451%);fill-opacity:1;" d="M 21.34375 0 C 18.59375 0 16 2.710938 16 5.578125 L 16 122.421875 C 16 125.132812 18.75 128 21.34375 128 L 106.65625 128 C 109.25 128 112 125.132812 112 122.421875 L 112 36 L 76 0 Z M 21.34375 0 "/>
-<path style=" stroke:none;fill-rule:nonzero;fill:rgb(0%,0%,0%);fill-opacity:0.196078;" d="M 84 36 L 112 64 L 112 36 Z M 84 36 "/>
-<path style=" stroke:none;fill-rule:nonzero;fill:rgb(100%,100%,100%);fill-opacity:0.392157;" d="M 76 0 L 111.96875 36 L 81.515625 36 C 78.820312 36 76 33.148438 76 30.453125 Z M 76 0 "/>
-<path style=" stroke:none;fill-rule:evenodd;fill:rgb(53.333333%,53.333333%,53.333333%);fill-opacity:1;" d="M 40 44 L 88 44 L 88 48 L 40 48 Z M 40 44 "/>
-<path style=" stroke:none;fill-rule:evenodd;fill:rgb(53.333333%,53.333333%,53.333333%);fill-opacity:1;" d="M 40 52 L 88 52 L 88 56 L 40 56 Z M 40 52 "/>
-<path style=" stroke:none;fill-rule:evenodd;fill:rgb(53.333333%,53.333333%,53.333333%);fill-opacity:1;" d="M 40 60 L 88 60 L 88 64 L 40 64 Z M 40 60 "/>
-<path style=" stroke:none;fill-rule:evenodd;fill:rgb(53.333333%,53.333333%,53.333333%);fill-opacity:1;" d="M 40 68 L 88 68 L 88 72 L 40 72 Z M 40 68 "/>
-<path style=" stroke:none;fill-rule:evenodd;fill:rgb(53.333333%,53.333333%,53.333333%);fill-opacity:1;" d="M 40 76 L 88 76 L 88 80 L 40 80 Z M 40 76 "/>
-<path style=" stroke:none;fill-rule:evenodd;fill:rgb(53.333333%,53.333333%,53.333333%);fill-opacity:1;" d="M 40 84 L 88 84 L 88 88 L 40 88 Z M 40 84 "/>
-<path style=" stroke:none;fill-rule:evenodd;fill:rgb(53.333333%,53.333333%,53.333333%);fill-opacity:1;" d="M 40 92 L 88 92 L 88 96 L 40 96 Z M 40 92 "/>
-</g>
+<svg width="64" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" height="64" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <linearGradient id="a" y1="17" x1="40" y2="31" gradientUnits="userSpaceOnUse" x2="54">
+   <stop stop-color="#060606"/>
+   <stop offset="1" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="b" y1="392.36" y2="336.36" gradientUnits="userSpaceOnUse" x2="0" gradientTransform="translate(-48-332.36)">
+   <stop stop-color="#ffffff" stop-opacity="0"/>
+   <stop offset="1" stop-color="#ffffff" stop-opacity=".1"/>
+  </linearGradient>
+  <path id="c" d="m10 61v-58h30l14 14v44h-14z"/>
+ </defs>
+ <g color-rendering="auto" color-interpolation-filters="linearRGB" shape-rendering="auto" image-rendering="auto" text-rendering="auto" color-interpolation="sRGB" color="#000000">
+  <use fill="#0c2d63" xlink:href="#c"/>
+  <g transform="scale(1-1)">
+   <rect opacity=".5" x="10" y="-4" width="30" fill="#ffffff" height="1"/>
+   <rect opacity=".25" x="10" y="-61" width="44" height="1"/>
+  </g>
+  <path fill="#1d70f7" d="m54 17l-14-14v14z"/>
+ </g>
+ <path opacity=".2" fill="url(#a)" fill-rule="evenodd" d="m40 17l14 14v-14z"/>
+ <path fill="#1d70f7" d="m21 22v1h22v-1zm0 3v1h22v-1zm0 3v1h11v-1zm0 4v1h22v-1zm0 3v1h19v-1zm0 2v1h11v-1zm0 3v1h22v-1zm0 3v1h16v-1z"/>
+ <use fill="url(#b)" xlink:href="#c"/>
 </svg>

@@ -1,5 +1,5 @@
-import FileSystemDriver from '../../../af/modules/fileSystem';
-import { Plugins } from '../../../af/modules/fileSystem';
+import FileSystemDriver from '../drivers/VirtualFileSystem';
+import { Plugins } from '../drivers/VirtualFileSystem';
 import System from '../../System';
 import { Make } from '../../../af/util/make';
 import Application from '../../../af/core/Application';
