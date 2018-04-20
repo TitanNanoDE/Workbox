@@ -7,15 +7,18 @@ const NO_ZINDEX = 0;
 const ZINDEX_IS_UNDEFINED = 0;
 const BASIC_ZINDEX = 1;
 const REMOVE_ONE_ITEM = 1;
+const STACK_MODE_ALWAYS_BEHIND = 'alwaysBehind';
+const STACK_MODE_ALWAYS_ON_TOP = 'alwaysOnTop';
+const STACK_MODE_DEFAULT = 'default';
 
 let windowIndex = {};
 
 let zStack = [];
 
 let calculateZIndexLevel = function(window) {
-    if ( window._stackMode === 'alwaysBehind') {
+    if ( window._stackMode === STACK_MODE_ALWAYS_BEHIND) {
         return NO_ZINDEX;
-    }else if (window._stackMode === 'alwaysOnTop') {
+    }else if (window._stackMode === STACK_MODE_ALWAYS_ON_TOP) {
         return zStack.length + BASIC_ZINDEX;
     } else {
         return (zStack.indexOf(window) || ZINDEX_IS_UNDEFINED) + BASIC_ZINDEX;
@@ -34,7 +37,7 @@ const ApplicationWindow = {
     state : null,
     type : null,
     _view : null,
-    _stackMode : 'normal',
+    _stackMode: STACK_MODE_DEFAULT,
     _blocksScreen: false,
     _app : null,
 
@@ -121,6 +124,10 @@ const ApplicationWindow = {
         return this.viewPort.scope;
     },
 
+    get hasFocus() {
+        return zStack[zStack.length - 1] === this;
+    },
+
     apperanceMode : function(mode) {
         this._blocksScreen = (mode === 'screenBlocking' && hasPrototype(this, WorkSpaceBorderToolWindow));
         this._stackMode = mode;
@@ -139,6 +146,26 @@ const ApplicationWindow = {
         this._view.position.x = x;
         this._view.position.y = y;
 
+        this.emit('change', this);
+    },
+
+    focus() {
+        if (zStack[zStack.length - 1] === this || this._stackMode !== STACK_MODE_DEFAULT) {
+            return;
+        }
+
+        const index = windowIndex[this._app].indexOf(this);
+        const zIndex = zStack.indexOf(this);
+        const currentFocus = zStack[zStack.length - 1];
+
+        windowIndex[this._app].splice(index, 1);
+        windowIndex[this._app].push(this);
+
+        zStack.splice(zIndex, 1);
+        zStack.push(this);
+
+        currentFocus.emit('blur');
+        this.emit('focus');
         this.emit('change', this);
     },
 
@@ -299,6 +326,10 @@ let WindowManager = {
         this.viewPort.update();
 
         return window;
+    },
+
+    _not(value) {
+        return !value;
     },
 
     __proto__: Application,

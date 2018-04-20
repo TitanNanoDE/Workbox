@@ -18,7 +18,9 @@
                 bind-event(minimize)="window.minimize"
                 bind-event(maximimize)="window.maximimize"
                 bind-attr(blocking)="window._blocksScreen"
-                bind-attr(order)="window._view._getZIndex()">
+                bind-attr(order)="window._view._getZIndex()"
+                bind-class="{ !blured: view._not(window.hasFocus) }"
+                bind-event(click)="window.focus">
                 <span slot="title">{{window._view.name}}</span>
                 <encapsulated-content
                     bind-attr(contentView)="window._view._contentView"

@@ -13,6 +13,10 @@
             flex-direction: column;
         }
 
+        :host([type="default"].blured) .windowTitle {
+            filter: grayscale(80%) blur(.5px);
+        }
+
         .windowTitle {
             position: relative;
             padding: .8rem;
