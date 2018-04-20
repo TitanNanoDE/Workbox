@@ -76,13 +76,17 @@ let DbFile = {
     data : null,
     mimeType : null,
 
-    _make : function(name, type, data){
+    _make(...args) { return this.constructor(...args); },
+
+    constructor(name, type, data) {
         this.name= name;
         this.type= type;
         this.data= data;
         this.mimeType= this.data.type || 'text/plain';
 
         this._make = null;
+
+        return this;
     },
 
     saveTo : function(args){

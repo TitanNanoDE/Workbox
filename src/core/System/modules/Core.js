@@ -4,6 +4,8 @@ import Application from '../../../af/core/Application';
 //import NetworkRequest from '../../../af/core/prototypes/NetworkRequest.js';
 import SystemModules from '../modules';
 
+const { create } = Object;
+
 let SystemCore = Make({
 
     name : 'System::Core',
@@ -32,19 +34,21 @@ let SystemCore = Make({
         this.loadModules();
 
         let [fileSystem] = System.ApplicationManager.getInstances('System::FileSystem');
-        let volume = Make(fileSystem.volumePrototypes.IndexedDBVolume)();
+        const systemVolume = create(fileSystem.volumePrototypes.StaticVolume).constructor();
+        const volume = create(fileSystem.volumePrototypes.IndexedDBVolume).constructor();
 
-        volume.ready.then(() => {
+        Promise.all([systemVolume.ready, volume.ready]).then(() => {
             let dirIndex = null;
 
-            fileSystem.mount('/', volume);
+            fileSystem.mount('/', systemVolume);
+            fileSystem.mount('/local', volume);
             fileSystem.emit('ready');
 
-            fileSystem.writeFile(`/tmp/${Date.now()}.log`, `system start!! ~ so wow!! ${new Date()}`);
+            fileSystem.writeFile(`/local/tmp/${Date.now()}.log`, `system start!! ~ so wow!! ${new Date()}`);
 
-            dirIndex = Object.keys(fileSystem.ls('/tmp/'));
+            dirIndex = Object.keys(fileSystem.ls('/local/tmp/'));
 
-            return fileSystem.readFile(`/tmp/${dirIndex[Math.round(Math.random() * dirIndex.length)]}`);
+            return fileSystem.readFile(`/local/tmp/${dirIndex[Math.round(Math.random() * dirIndex.length)]}`);
         }).then(file => {
             this._logger.log(file);
             this._logger.log('initializing...');

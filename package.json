@@ -6,7 +6,7 @@
   "dependencies": {
     "@af-modules/databinding": "^1.2.0-dev.9",
     "@webcomponents/webcomponentsjs": "^1.0.20",
-    "application-frame": "^0.7.0-dev.3",
+    "application-frame": "^0.7.0-dev.5",
     "babel-core": "^6.25.0",
     "es6-module-loader": "^0.17.11",
     "gulp-bundle-templates": "^1.0.6",
@@ -28,6 +28,7 @@
     "gulp-changed": "^3.0.0",
     "gulp-clean-dest": "^0.2.0",
     "gulp-file": "^0.3.0",
+    "gulp-filelist": "^1.0.0",
     "gulp-indent": "^1.0.1",
     "gulp-insert": "^0.5.0",
     "gulp-sourcemaps": "^2.2.3",

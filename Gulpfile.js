@@ -10,6 +10,7 @@ const gulp 	 = require('gulp'),
 const rename = require('gulp-rename');
 const webpackStream = require('webpack-stream');
 const named = require('vinyl-named');
+const filelist = require('gulp-filelist');
 
 gulp.task('clean', () => {
     return del(['dist']);
@@ -49,7 +50,13 @@ gulp.task('build:html', [], () => {
         .pipe(gulp.dest('dist/'));
 });
 
-gulp.task('webpack', [buildStage, systemModulesBuilder], (callback) => {
+gulp.task('build:static-volume', ['copy:userspace'], () => {
+    return gulp.src('dist/userSpace/**')
+        .pipe(filelist('static-volume.json', { relative: true }))
+        .pipe(gulp.dest('build/core/'));
+});
+
+gulp.task('webpack', [buildStage, systemModulesBuilder, 'build:static-volume'], (callback) => {
     // run webpack
     Webpack({
         entry : [path.join(__dirname, 'build', 'core', 'System.js')],

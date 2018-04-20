@@ -21,12 +21,13 @@ const createFileMangerWindow = function(application) {
         let scope = this.__parentScope__ || this;
 
         scope.currentPath = path;
-        window.title = scope.currentPath;
         scope.currentDir = mapDirectoryIndex(SystemAPI.FileSystem.ls(scope.currentPath));
 
         scope.history.stack = scope.history.stack.slice(0, scope.history.cursor + 1);
         scope.history.stack.push(scope.currentPath);
         scope.history.cursor = scope.history.stack.length - 1;
+
+        window.title = scope.currentPath;
     };
 
     window.scope.openDir = function(event, scope) {
@@ -40,8 +41,9 @@ const createFileMangerWindow = function(application) {
     window.scope.moveToCursor = function() {
         let path = this.history.stack[this.history.cursor];
 
-        this.currentPath = path;
         window.title = path;
+
+        this.currentPath = path;
         this.currentDir = mapDirectoryIndex(SystemAPI.FileSystem.ls(path));
     };
 

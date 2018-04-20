@@ -10,7 +10,7 @@ let name = 'buildModules';
 gulp.task(name, [], () => {
 
     let stream = new Stream.Readable();
-    let files = glob.sync(config.src + '/core/System/modules/*.js');
+    let files = glob.sync(config.src + '/core/System/modules/*');
     let core = files.findIndex(item => item.search(/Core.js$/) > 0);
 
     stream._read = function(){};
