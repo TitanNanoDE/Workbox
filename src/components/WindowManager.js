@@ -24,14 +24,14 @@ const checkCollision = function(blockingWindows, window, type, newValue) {
         let willEnterX = (item.left <= newValue && newValue <= (item.left + item.width))
                          || (item.left >= newValue && item.left <= (newValue + window.width));
 
-        let isInX = (item.left <= window.left && window.left <= (item.left + item.width))
-                    || (item.left >= window.left && item.left <= (window.left + window.width));
+        let isInX = (item.left < window.left && window.left < (item.left + item.width))
+                    || (item.left > window.left && item.left < (window.left + window.width));
 
         let willEnterY = (item.top <= newValue && newValue <= (item.top + item.height))
                          || (item.top >= newValue && item.top <= (newValue + window.height));
 
-        let isInY = (item.top <= window.top && window.top <= (item.top + item.height))
-                    || (item.top >= window.top && item.top <= (window.top + window.height));
+        let isInY = (item.top < window.top && window.top < (item.top + item.height))
+                    || (item.top > window.top && item.top < (window.top + window.height));
 
         if (type === CollisionTypes.HORIZONTAL && willEnterX && isInY) {
             return true;
@@ -44,7 +44,26 @@ const checkCollision = function(blockingWindows, window, type, newValue) {
         return false;
     });
 
-    return !!result;
+
+    if (result) {
+        if (type === CollisionTypes.HORIZONTAL) {
+            if (window.left < result.left) {
+                return result.left - window.width;
+            }
+
+            return result.left + result.width;
+        }
+
+        if (type === CollisionTypes.VERTICAL) {
+            if (window.top < result.top) {
+                return result.top - window.height;
+            }
+
+            return result.top + result.height;
+        }
+    }
+
+    return newValue;
 };
 
 export const WindowManager = {
@@ -81,18 +100,9 @@ export const WindowManager = {
     },
 
     _onMoveRequest(event) {
-        let x = event.detail.oldX;
-        let y = event.detail.oldY;
-
         const blockingWindows = this._windows.filter(window => window.blocking);
-
-        if (!checkCollision(blockingWindows, event.target, CollisionTypes.HORIZONTAL, event.detail.newX)) {
-            x = event.detail.newX;
-        }
-
-        if (!checkCollision(blockingWindows, event.target, CollisionTypes.VERTICAL, event.detail.newY)) {
-            y = event.detail.newY;
-        }
+        const x = checkCollision(blockingWindows, event.target, CollisionTypes.HORIZONTAL, event.detail.newX);
+        const y = checkCollision(blockingWindows, event.target, CollisionTypes.VERTICAL, event.detail.newY);
 
         event.target.moveTo(x, y);
     },
