@@ -47,7 +47,7 @@
             border-radius: 50%;
             height: 1em;
             width: 1em;
-            font-size: 1.2rem;
+            font-size: 13px;
             display: inline-block;
             margin-right: .3rem;
             position: relative;
@@ -67,18 +67,20 @@
 
         .windowTitle .action.close:hover::after {
             position: absolute;
-            left: 0;
-            top: 0;
-            content: 'x';
-            font-size: 1.2rem;
-            display: flex;
-            right: 0;
-            bottom: 0;
-            justify-content: center;
-            align-items: center;
+            left: 1.5px;
+            top: 1.5px;
+            content: 'close';
+            font-size: 10px;
+            display: block;
+            height: 1em;
+            width: 1em;
             cursor: pointer;
-            user-select: none;
+            -webkit-user-select: none;
             -moz-user-select: none;
+            user-select: none;
+            font-family: 'Material Icons';
+            line-height: 1;
+            font-weight: 600;
         }
 
         .view-port-container {
