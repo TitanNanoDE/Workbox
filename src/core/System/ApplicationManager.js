@@ -4,6 +4,7 @@ import DataBinding from '@af-modules/databinding';
 import Application from '../../af/core/Application';
 import SystemHandlers from './SystemHandlers';
 import UrlResolver from './UrlResolver';
+import ApplicationMenuManager from './ApplicationMenuManager';
 
 const IMEDIATE_INVOCE = 0;
 
@@ -11,6 +12,7 @@ let registeredApplications = {};
 let logger = Log.use('ApplicationManager');
 let instanceList = {};
 let windowManagerReady = false;
+const applicationSymbols = new WeakMap();
 
 let initApplication = function(instance, manager) {
     let init = window => {
@@ -48,6 +50,7 @@ let ApplicationInfo = {
         this.displayName = application.displayName;
         this.icons = application.icons ? application.icons.slice() : [];
         this.headless = application.headless;
+        this.symbol = applicationSymbols.get(application);
     }
 };
 
@@ -108,22 +111,28 @@ const ApplicationManager = {
      * @param {Application} application - the application which should be registered.
      * @return {ApplicationManager} - The ApplicationManager it self
      */
-    register : function(application){
+    register(application) {
 
-        if (!registeredApplications[application.name]) {
-            registeredApplications[application.name] = application;
-
-            if (application.resources) {
-                Object.entries(application.resources)
-                    .forEach(([key, value]) => {
-                        UrlResolver.packageResource(application.name, key, value);
-                    });
-            }
-
-            logger.log(`Application ${application.name} registered!`);
-        } else {
+        if (registeredApplications[application.name]) {
             logger.error(`Application "${application.name}" already exists!`);
+            return;
         }
+
+        registeredApplications[application.name] = application;
+        applicationSymbols.set(application, Symbol(`ApplicationSymbol<${application.name}>`));
+
+        if (application.resources) {
+            Object.entries(application.resources)
+                .forEach(([key, value]) => {
+                    UrlResolver.packageResource(application.name, key, value);
+                });
+        }
+
+        if (application.applicationMenu) {
+            ApplicationMenuManager.registerMenu(applicationSymbols.get(application), application.applicationMenu);
+        }
+
+        logger.log(`Application ${application.name} registered!`);
 
         return ApplicationManager;
     },
@@ -178,9 +187,7 @@ const ApplicationManager = {
     },
 
     getApplication : function(name) {
-        let application = Object.keys(registeredApplications).find(application => {
-            return application.name === name;
-        });
+        const application = registeredApplications[name];
 
         return Make(ApplicationInfo)(application);
     },

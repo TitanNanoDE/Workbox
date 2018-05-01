@@ -2,7 +2,8 @@ import System from '../../System';
 import SystemAPI from '../../SystemAPI';
 import UrlResolver from '../UrlResolver';
 
-const { Application } = SystemAPI.Prototypes;
+const { Application, ApplicationMenu } = SystemAPI.Prototypes;
+const { create } = Object;
 
 const mapDirectoryIndex = function(index) {
     return Object.keys(index).map(key => {
@@ -88,18 +89,33 @@ const createFileMangerWindow = function(application) {
     window.viewPort.update();
 };
 
-let createMainMenuWindow = function(application) {
+const createMainMenuWindow = function(application) {
     const window = SystemAPI.Windows.createWindow(application, 'workSpaceBorderTool');
 
+    /** @type {WindowManager} */
+    const [WindowManager] = System.ApplicationManager.getInstances('System::WindowManager');
+
     window.viewPort.bind({ template: WorkSpace.templates.MainMenuWindow });
-    window.scope.currentMainMenu = {};
+    window.scope.currentMainMenu = null;
+    window.scope.currentApplication = null;
     window.scope.primaryEntryClick = function() {};
     window.scope.subEntryClick = function(){};
     window.scope.onAboutSystem = function() {
         System.ApplicationManager.launch('system.js.about', WorkSpace.name);
     };
+
+    window.scope.getTitle = function(application) {
+        return application.displayName || application.name;
+    };
+
     window.dockTo('top');
     window.apperanceMode('screenBlocking');
+
+    WindowManager.on('focuschange', ({ application }) => {
+        window.scope.currentApplication = application;
+        window.scope.currentMenu = System.ApplicationMenuManager.getMenu(application.symbol);
+        window.viewPort.update();
+    });
 };
 
 const WorkSpace = {
@@ -111,6 +127,24 @@ const WorkSpace = {
     windows: null,
     backgroundWindow: null,
     dock: null,
+
+    applicationMenu: create(ApplicationMenu).constructor([
+        {
+            title: 'About',
+            get handler() { }
+        }, {
+            title: 'Quit',
+            get handler() { },
+        }
+    ], [{
+        title: 'File',
+        entries: [{
+            title: 'New Window',
+            get handler() {
+                return WorkSpace.createNewFileManagerWindow.bind(WorkSpace);
+            }
+        }]
+    }]),
 
     templates: {
         backgroundWindow: 'work-space-background-template',
@@ -178,7 +212,13 @@ const WorkSpace = {
                 }
             }
         });
+    },
 
+    /** @static */
+    createNewFileManagerWindow() {
+        const instance = SystemAPI.Applications.current.instance(this);
+
+        createFileMangerWindow(instance);
     },
 
     __proto__: Application,

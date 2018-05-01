@@ -9,7 +9,7 @@
             padding: 0 10px;
             list-style: none;
             margin: 0;
-            font-size: 16px;
+            font-size: 14px;
             box-sizing: border-box;
         }
 
@@ -55,5 +55,30 @@
                 <li class="item" bind-event(click)="view.onAboutSystem">About</class>
             </ul>
         </li>
+        <li class="item" tabindex="0">
+            <span>{{view.getTitle(view.currentApplication)}}</span>
+
+            <ul class="sub-menu">
+                <template bind-repeat="entry in view.currentMenu.entries">
+                    <li class="item" tabindex="0">
+                        <span>{{entry.title}}</span>
+                    </li>
+                </template>
+            </ul>
+        </li>
+
+        <template bind-repeat="menu in view.currentMenu.menus">
+            <li class="item" tabindex="0">
+                <span>{{menu.title}}</span>
+
+                <ul class="sub-menu">
+                    <template bind-repeat="entry in menu.entries">
+                        <li class="item" bind-event(click)="entry.handler">
+                            <span>{{entry.title}}</span>
+                        </li>
+                    </template>
+                </ul>
+            </li>
+        </template>
     </ul>
 </template>

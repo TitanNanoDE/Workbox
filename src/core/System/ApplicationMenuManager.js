@@ -1,18 +1,58 @@
+import Log from '../System/Log';
+
+export const ApplicationMenu = {
+    entries: null,
+    menus: null,
+
+    constructor(entries = [], menus = []) {
+        if (!this.entries) {
+            this.entries = entries;
+        }
+
+        if (!this.menus) {
+            this.menus = menus;
+        }
+
+        return this;
+    },
+};
+
+const logger = Log.use('ApplicationMenuManager');
+
 const ApplicationMenuManager = {
 
-    registry : new WeakMap(),
+    _registry: new Map(),
 
-    active : null,
+    /**
+     * [description]
+     *
+     * @param  {Symbol.<ApplicationSymbol>} application [description]
+     * @param  {ApplicationMenu} menu        [description]
+     * @return {un}             [description]
+     */
+    registerMenu(application, menu) {
+        if (typeof application !== 'symbol') {
+            logger.error('ApplicationMenu identifier has to be a symbol!');
+            return;
+        }
 
-    registerMenu : function(application, menu){
-        this.registry.set(application, menu);
+        this._registry.set(application, menu);
     },
 
-    getActiveMenu : function() {
-        return this.registry.get(this.active);
+
+    /**
+     * [getMenu description]
+     * @param  {[type]} application [description]
+     * @return {[type]}             [description]
+     */
+    getMenu(application) {
+        if (typeof application !== 'symbol') {
+            logger.error('ApplicationMenu identifier has to be a symbol!');
+            return;
+        }
+
+        return this._registry.get(application);
     }
-
-
 };
 
 export default ApplicationMenuManager;

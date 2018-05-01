@@ -4,16 +4,20 @@ import Windows from './SystemAPI/Windows';
 import Application from '../af/core/Application';
 import Applications from './SystemAPI/Applications';
 import FileSystem from './SystemAPI/FileSystem';
+import ApplicationMenu from './SystemAPI/ApplicationMenu';
+import { ApplicationMenu as ApplicationMenuProto } from './System/ApplicationMenuManager';
 
 let SystemAPI = {
-    Tools : Tools,
-    Log : Log,
-    Windows : Windows,
-    Applications : Applications,
-    FileSystem : FileSystem,
+    Tools,
+    Log,
+    Windows,
+    Applications,
+    FileSystem,
+    ApplicationMenu,
 
-    Prototypes : {
-        Application : Application,
+    Prototypes: {
+        Application,
+        ApplicationMenu: ApplicationMenuProto,
     }
 };
 

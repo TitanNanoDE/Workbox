@@ -11,6 +11,8 @@ const STACK_MODE_ALWAYS_BEHIND = 'alwaysBehind';
 const STACK_MODE_ALWAYS_ON_TOP = 'alwaysOnTop';
 const STACK_MODE_DEFAULT = 'default';
 
+const FORCE_WINDOW_FOCUS = Symbol('ForceWindowFocus');
+
 let windowIndex = {};
 
 let zStack = [];
@@ -149,24 +151,43 @@ const ApplicationWindow = {
         this.emit('change', this);
     },
 
-    focus() {
-        if (zStack[zStack.length - 1] === this || this._stackMode !== STACK_MODE_DEFAULT) {
-            return;
+    /**
+     * [focus description]
+     * @param  {Symbol.<ForceWindowFocus>} force [description]
+     * @return {[type]}       [description]
+     */
+    focus(force) {
+        force = force === FORCE_WINDOW_FOCUS;
+
+        if (!force && (zStack[zStack.length - 1] === this || this._stackMode !== STACK_MODE_DEFAULT)) {
+            return false;
         }
 
         const index = windowIndex[this._app].indexOf(this);
         const zIndex = zStack.indexOf(this);
         const currentFocus = zStack[zStack.length - 1];
 
-        windowIndex[this._app].splice(index, 1);
+        if (!force && (index === -1 || zIndex === -1)) {
+            return false;
+        }
+
+        if (index > 1) {
+            windowIndex[this._app].splice(index, 1);
+        }
+
         windowIndex[this._app].push(this);
 
-        zStack.splice(zIndex, 1);
+        if (zIndex > -1) {
+            zStack.splice(zIndex, 1);
+        }
+
         zStack.push(this);
 
         currentFocus.emit('blur');
         this.emit('focus');
         this.emit('change', this);
+
+        return true;
     },
 
     __proto__: EventTarget,
@@ -323,6 +344,9 @@ let WindowManager = {
         console.log('atempting to create new window!');
 
         window.on('change', () => this.viewPort.update());
+        window.on('focus', () => this.emit('focuschange', { application: System.ApplicationManager.getApplication(application.name) }));
+        window.focus(FORCE_WINDOW_FOCUS);
+
         this.viewPort.update();
 
         return window;
