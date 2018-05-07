@@ -1,6 +1,6 @@
-import { Make } from '../../../af/util/make';
-import Application from '../../../af/core/Application';
-import System from '../../System';
+import { Make } from 'application-frame/util/make';
+import Application from 'application-frame/core/Application';
+import Log from '../Log';
 
 let Terminal = Make({
 
@@ -31,7 +31,7 @@ let Terminal = Make({
         this.view = window.viewPort;
         this.view.scope.lineBuffer = this.cache;
 
-        System.Log.connect(item => {
+        Log.connect(item => {
             this.cache.push(item);
 
             this.view.update();

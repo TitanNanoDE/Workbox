@@ -10,7 +10,7 @@ const invokeCallback = function(attribute, element, newValue, oldValue) {
         return;
     }
 
-    element[callback](newValue, oldValue);
+    return element[callback](newValue, oldValue);
 };
 
 const typeCast = function(value, type) {

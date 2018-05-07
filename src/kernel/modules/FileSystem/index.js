@@ -1,6 +1,6 @@
 import { Plugins } from '../../drivers/VirtualFileSystem';
 import Application from 'application-frame/core/Application';
-import System from '../../../System';
+import Log from '../../Log';
 import IndexedDBVolume from './IndexedDBVolume';
 import StaticVolume from './StaticVolume';
 import File from './File';
@@ -136,8 +136,8 @@ const FileSystem = {
     File,
 
     init() {
-        logger = System.Log.use('System::FileSystem');
-        Plugins.logger = System.Log.use('AF::FileSystemDriver');
+        logger = Log.use('System::FileSystem');
+        Plugins.logger = Log.use('AF::FileSystemDriver');
     },
 
     __proto__: Application,

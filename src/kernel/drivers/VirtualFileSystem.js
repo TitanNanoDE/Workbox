@@ -5,11 +5,11 @@
  * @license The following Source is licensed under the Appache 2.0 License. - http://www.apache.org/licenses/LICENSE-2.0
  */
 
-import { Make } from '../../../af/util/make';
+import { Make } from 'application-frame/util/make';
 
 const DEFAULTSYSTEM = 'main';
 
-let $$= (typeof window !== 'undefined') ? window : global;
+let $$= (typeof self !== 'undefined') ? self : global;
 let db = null;
 
 export let Plugins = {

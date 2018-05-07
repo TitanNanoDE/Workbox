@@ -1,10 +1,11 @@
-import { Make } from '../../af/util/make';
-import Log from '../System/Log';
-import DataBinding from '@af-modules/databinding';
-import Application from '../../af/core/Application';
+import { Make } from 'application-frame/util/make';
+import Log from './Log';
+import Application from 'application-frame/core/Application';
 import SystemHandlers from './SystemHandlers';
 import UrlResolver from './UrlResolver';
 import ApplicationMenuManager from './ApplicationMenuManager';
+import CurrentThread from './CurrentThread';
+import { ViewController, ViewControllerProxied } from './ViewController';
 
 const IMEDIATE_INVOCE = 0;
 
@@ -13,6 +14,8 @@ let logger = Log.use('ApplicationManager');
 let instanceList = {};
 let windowManagerReady = false;
 const applicationSymbols = new WeakMap();
+
+const { create } = Object;
 
 let initApplication = function(instance, manager) {
     let init = window => {
@@ -58,38 +61,37 @@ const ApplicationManager = {
 
     name: 'ApplicationManager',
 
-    _defaultViewTemplateRef: null,
-    _defaultView: null,
     _fakeWindow: null,
     _scope: null,
-    _viewPortUpdate() {},
+    _contentScope: null,
 
-    constructor() {
+    init() {
         super.constructor();
-        const { scope } = DataBinding.createTemplateInstance({ template: '#main-view', scope: this });
 
-        this._scope = scope;
+        this._scope = create(ViewController).constructor('main-view');
 
         this.on('WindowManager', () => windowManagerReady = true);
 
         // fake window
-        const fakeScope = () => this._defaultView;
-        const fakeUpdate = () => this._viewPortUpdate;
+        const getScope = () => this._contentScope;
 
         this._fakeWindow = {
             viewPort: {
                 bind: ({ template, view = {} }) => {
-                    this._defaultViewTemplateRef = template;
-                    this._defaultView = view;
-                    this._scope.update();
+                    const viewController = create(ViewControllerProxied).constructor(template, view);
+
+                    Promise.all([this._scope._id, viewController._id])
+                        .then(([parentViewId, viewId]) => {
+                            CurrentThread.attachView(parentViewId, viewId);
+                        });
+
+                    this._contentScope = viewController;
                 },
 
-                get scope() { return fakeScope(); },
-                get update() { return fakeUpdate(); }
+                get scope() { return getScope(); },
+                update: () => { this._contentScope.update(); }
             }
         };
-
-        return this;
     },
 
     updateWindowManager : function(newMethod){

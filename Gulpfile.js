@@ -11,6 +11,7 @@ const rename = require('gulp-rename');
 const webpackStream = require('webpack-stream');
 const named = require('vinyl-named');
 const filelist = require('gulp-filelist');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 gulp.task('clean', () => {
     return del(['dist']);
@@ -53,23 +54,29 @@ gulp.task('build:html', [], () => {
 gulp.task('build:static-volume', ['copy:userspace'], () => {
     return gulp.src('dist/userSpace/**')
         .pipe(filelist('static-volume.json', { relative: true }))
-        .pipe(gulp.dest('build/core/'));
+        .pipe(gulp.dest('build/kernel/'));
 });
 
 gulp.task('webpack', [buildStage, systemModulesBuilder, 'build:static-volume'], (callback) => {
     // run webpack
     Webpack({
-        entry : [path.join(__dirname, 'build', 'core', 'System.js')],
+        entry: {
+            io: path.join(__dirname, 'build', 'io', 'index.js'),
+        },
         context : path.join(__dirname, 'build'),
         output : {
             pathinfo: true,
             path : path.join(__dirname, 'dist'),
-            filename : 'app.js'
+            filename : '[name].js',
+            sourceMapFilename: '[file]_[hash].map',
         },
         module: {
             rules: [{
                 test: /\.html$/,
                 use: ['dom-loader', 'html-loader']
+            }, {
+                include: path.resolve(__dirname, 'build/threading'),
+                sideEffects: false
             }],
         },
 
@@ -79,12 +86,74 @@ gulp.task('webpack', [buildStage, systemModulesBuilder, 'build:static-volume'], 
             new Webpack.IgnorePlugin(/vertx/),
         ],
 
-        devtool : 'source-map',
+        optimization: {
+            concatenateModules: false,
+            minimizer: [
+                new UglifyJsPlugin({
+                    sourceMap: true,
+                    uglifyOptions: {
+                        mangle: false,
+                        compress: false,
+                        output: {
+                            beautify: true,
+                        }
+                    }
+                })
+            ]
+        },
+
+        devtool: 'source-map',
+        mode: 'production',
     }, (err, stats) => {
         if(err) throw new Gutil.PluginError('webpack', err);
         Gutil.log('[webpack]', stats.toString());
         callback();
     });
+});
+
+gulp.task('build:threads', [buildStage, systemModulesBuilder, 'build:static-volume'], () => {
+    return gulp.src(['build/kernel/index.js'])
+        .pipe(named((file) => {
+            const packageName = path.parse(file.path).dir.match(/[^/]*$/)[0];
+
+            return packageName;
+        }))
+        .pipe(webpackStream({
+            context : path.join(__dirname, 'build'),
+            output: {
+                filename: path.join('[name].js'),
+                sourceMapFilename: '[file]_[hash].map'
+            },
+            module: {
+                rules: [{
+                    include: path.resolve(__dirname, 'build/threading'),
+                    sideEffects: false
+                }],
+            },
+            optimization: {
+                concatenateModules: false,
+                minimizer: [
+                    new UglifyJsPlugin({
+                        sourceMap: true,
+                        uglifyOptions: {
+                            output: {
+                                beautify: true,
+                            },
+                            mangle: false,
+                            compress: false,
+                        }
+                    })
+                ]
+            },
+            mode: 'production',
+            target: 'webworker',
+            devtool: 'source-map',
+        }, require('webpack'))
+            .on('error', (error) => {
+                Gutil.log(error.message);
+                process.exit(1);
+            }))
+        .pipe(gulp.dest('dist/'));
 });
 
 gulp.task('build:packages', () => {
@@ -118,5 +187,5 @@ gulp.task('watch', ['default'], () => {
 });
 
 gulp.task('default', (cb) => {
-    runSequence('clean', ['copy', 'build:html', 'build:packages', 'webpack'], cb);
+    runSequence('clean', ['copy', 'build:html', 'build:packages', 'build:threads', 'webpack'], cb);
 });

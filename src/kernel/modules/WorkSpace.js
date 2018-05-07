@@ -1,9 +1,15 @@
-import System from '../../System';
-import SystemAPI from '../../SystemAPI';
 import UrlResolver from '../UrlResolver';
+import Application from 'application-frame/core/Application';
+import ApplicationManager from '../ApplicationManager';
+import { ApplicationMenu, default as ApplicationMenuManager } from '../ApplicationMenuManager';
 
-const { Application, ApplicationMenu } = SystemAPI.Prototypes;
 const { create } = Object;
+
+const getFileSystem = function() {
+    const [fileSystem] = ApplicationManager.getInstances('System::FileSystem');
+
+    return fileSystem;
+};
 
 const mapDirectoryIndex = function(index) {
     return Object.keys(index).map(key => {
@@ -16,13 +22,14 @@ const mapDirectoryIndex = function(index) {
 };
 
 const createFileMangerWindow = function(application) {
-    const window = SystemAPI.Windows.createWindow(application, 'default');
+    const FileSystem = getFileSystem();
+    const window = ApplicationManager.requestApplicationMainWindow(application, 'default');
     window.viewPort.bind({ template : WorkSpace.templates.FileManagerWindow });
-    window.scope.goToPath = function(path) {
+    /*window.scope.goToPath = function(path) {
         let scope = this.__parentScope__ || this;
 
         scope.currentPath = path;
-        scope.currentDir = mapDirectoryIndex(SystemAPI.FileSystem.ls(scope.currentPath));
+        scope.currentDir = mapDirectoryIndex(FileSystem.ls(scope.currentPath));
 
         scope.history.stack = scope.history.stack.slice(0, scope.history.cursor + 1);
         scope.history.stack.push(scope.currentPath);
@@ -45,7 +52,7 @@ const createFileMangerWindow = function(application) {
         window.title = path;
 
         this.currentPath = path;
-        this.currentDir = mapDirectoryIndex(SystemAPI.FileSystem.ls(path));
+        this.currentDir = mapDirectoryIndex(FileSystem.ls(path));
     };
 
     window.scope.goBack = function() {
@@ -85,35 +92,33 @@ const createFileMangerWindow = function(application) {
         }
     };
 
-    window.scope.goToPath('/');
+    window.scope.goToPath('/'); */
     window.viewPort.update();
 };
 
 const createMainMenuWindow = function(application) {
-    const window = SystemAPI.Windows.createWindow(application, 'workSpaceBorderTool');
+    const window = ApplicationManager.requestApplicationMainWindow(application, 'workSpaceBorderTool');
 
     /** @type {WindowManager} */
-    const [WindowManager] = System.ApplicationManager.getInstances('System::WindowManager');
+    const [WindowManager] = ApplicationManager.getInstances('System::WindowManager');
 
     window.viewPort.bind({ template: WorkSpace.templates.MainMenuWindow });
     window.scope.currentMainMenu = null;
     window.scope.currentApplication = null;
-    window.scope.primaryEntryClick = function() {};
+    /*window.scope.primaryEntryClick = function() {};
     window.scope.subEntryClick = function(){};
     window.scope.onAboutSystem = function() {
-        System.ApplicationManager.launch('system.js.about', WorkSpace.name);
-    };
-
-    window.scope.getTitle = function(application) {
-        return application.displayName || application.name;
-    };
+        ApplicationManager.launch('system.js.about', WorkSpace.name);
+    };*/
 
     window.dockTo('top');
     window.apperanceMode('screenBlocking');
 
     WindowManager.on('focuschange', ({ application }) => {
-        window.scope.currentApplication = application;
-        window.scope.currentMenu = System.ApplicationMenuManager.getMenu(application.symbol);
+        window.scope.currentApplication = {
+            get title() { return application.displayName || application.name; },
+        };
+        window.scope.currentMenu = ApplicationMenuManager.getMenu(application.symbol);
         window.viewPort.update();
     });
 };
@@ -161,7 +166,7 @@ const WorkSpace = {
             dock : null,
         };
 
-        this.windows.backgroundWindow = SystemAPI.Windows.createWindow(this, 'fullScreen');
+        this.windows.backgroundWindow = ApplicationManager.requestApplicationMainWindow(this, 'fullScreen');
         this.windows.backgroundWindow.viewPort.bind({ template : this.templates.backgroundWindow });
         this.windows.backgroundWindow.apperanceMode('alwaysBehind');
         this.backgroundWindow = this.windows.backgroundWindow.viewPort.scope;
@@ -169,14 +174,14 @@ const WorkSpace = {
         // Load the wallpaper
         this.backgroundWindow.wallpaper = './userSpace/the-roaming-platypus-310824-unsplash.jpg';
 
-        this.windows.dock = SystemAPI.Windows.createWindow(this, 'workSpaceBorderTool');
+        this.windows.dock = ApplicationManager.requestApplicationMainWindow(this, 'workSpaceBorderTool');
         this.windows.dock.viewPort.bind({ template : this.templates.dock });
         this.dock = this.windows.dock.viewPort.scope;
 
         this.windows.dock.dockTo('left');
         this.windows.dock.apperanceMode('alwaysOnTop');
 
-        let applications = SystemAPI.Applications.getActiveApplicationList();
+        let applications = ApplicationManager.getActiveApplicationList();
 
         this.dock.itemList = applications.filter(application => !application.headless)
             .map(application => {
@@ -190,11 +195,12 @@ const WorkSpace = {
             });
 
         this.windows.dock.viewPort.update();
+        this.windows.backgroundWindow.viewPort.update();
 
         createFileMangerWindow(this);
         createMainMenuWindow(this);
 
-        SystemAPI.Applications.on('applicationLaunched', application => {
+        ApplicationManager.on('applicationLaunched', application => {
             if (!application.headless) {
                 let isNew = !this.dock.itemList.find(item => item.name === application.name);
 
@@ -216,7 +222,8 @@ const WorkSpace = {
 
     /** @static */
     createNewFileManagerWindow() {
-        const instance = SystemAPI.Applications.current.instance(this);
+        const list = ApplicationManager.getInstances(this.name);
+        const instance = list[list.length - 1];
 
         createFileMangerWindow(instance);
     },

@@ -23,6 +23,10 @@ export const SystemIcon = {
         this._createBoundShadowTemplate(SystemIconMeta.template);
     },
 
+    _onPropertyChanged() {
+        this._scope.update();
+    },
+
     __proto__: CustomElement,
 };
 

@@ -1,7 +1,12 @@
-import System from '../../System';
+import ApplicationManager from '../ApplicationManager';
+import SystemHandlers from '../SystemHandlers';
 import { Make, hasPrototype } from 'application-frame/util/make';
 import Application from 'application-frame/core/Application';
 import EventTarget from 'application-frame/core/EventTarget';
+import ViewId from '../../shared/ViewId';
+import { ViewControllerProxied } from '../ViewController';
+
+const { create } = Object;
 
 const NO_ZINDEX = 0;
 const ZINDEX_IS_UNDEFINED = 0;
@@ -17,6 +22,8 @@ let windowIndex = {};
 
 let zStack = [];
 
+const viewToWindowMap = new WeakMap();
+
 let calculateZIndexLevel = function(window) {
     if ( window._stackMode === STACK_MODE_ALWAYS_BEHIND) {
         return NO_ZINDEX;
@@ -25,6 +32,49 @@ let calculateZIndexLevel = function(window) {
     } else {
         return (zStack.indexOf(window) || ZINDEX_IS_UNDEFINED) + BASIC_ZINDEX;
     }
+};
+
+/**
+ * Closes the ApplicationWindow and destroys all scopes.
+ * A `windowClose` event is emited
+ *
+ * @param {number} index
+ *
+ * @return {void}
+ */
+const closeWindow = function(index) {
+    const window = zStack[index];
+
+    window.emit('change');
+
+    zStack.splice(index, REMOVE_ONE_ITEM);
+
+    index = windowIndex[window._app].indexOf(window);
+    windowIndex[window._app].splice(index, REMOVE_ONE_ITEM);
+
+    window.emit('close');
+};
+
+/**
+ * @todo implement this!
+ * @return {void}
+ */
+const maximizeWindow = function() {
+    SystemHandlers.ErrorHandler.methodNotImplemented('WindowManager');
+};
+
+/**
+ * @todo implement this!
+ * @return {void}
+ */
+const minimizeWindow = function() {
+    SystemHandlers.ErrorHandler.methodNotImplemented('WindowManager');
+};
+
+const focusWindow = function(viewId) {
+    const window = zStack.find(window => window._view.viewId === viewId);
+
+    window.focus();
 };
 
 /**
@@ -42,6 +92,8 @@ const ApplicationWindow = {
     _stackMode: STACK_MODE_DEFAULT,
     _blocksScreen: false,
     _app : null,
+    _contentView: null,
+    _contentViewId: null,
 
     /**
      * @constructs
@@ -57,54 +109,23 @@ const ApplicationWindow = {
         this.type = type;
         this.viewPort = {
             _window: this,
-            _dirty: false,
             bind: ({ template, view = {}, }) => {
-                this._view._contentTemplate = template;
-                this._view._contentView = view;
+                const viewController = create(ViewControllerProxied).constructor(template, view);
+
+                viewController._id.then((viewId) => {
+                    this._contentViewId = viewId;
+                    this.emit('change', this);
+                });
+
+                this._contentView = viewController;
             },
 
             update() {
-                this._dirty = true;
-                this._window.emit('change', this);
+                this._window._contentView.update();
             },
 
-            get scope() { return this._window._view._contentView; },
+            get scope() { return this._window._contentView; },
         };
-    },
-
-    /**
-     * @todo implement this!
-     * @return {void}
-     */
-    maximimize : function(){
-        System.SystemHandlers.ErrorHandler.methodNotImplemented('ApplicationWindow');
-    },
-
-    /**
-     * @todo implement this!
-     * @return {void}
-     */
-    minimize : function(){
-        System.SystemHandlers.ErrorHandler.methodNotImplemented('ApplicationWindow');
-    },
-
-    /**
-     * Closes the ApplicationWindow and destroys all scopes.
-     * A `windowClose` event is emited
-     *
-     * @return {void}
-     */
-    close() {
-        this._view._contentTemplate = null;
-        this.emit('change');
-
-        let index = zStack.indexOf(this);
-        zStack.splice(index, REMOVE_ONE_ITEM);
-
-        index = windowIndex[this._app].indexOf(this);
-        windowIndex[this._app].splice(index, REMOVE_ONE_ITEM);
-
-        this.emit('close');
     },
 
     /**
@@ -207,10 +228,9 @@ let ApplicationWindowView = {
      * @type {string}
      * @private
      */
-    _getZIndex : null,
-
-    /** @type {ApplicationWindow} */
-    window: null,
+    get zIndex() {
+        return calculateZIndexLevel.apply(null, [viewToWindowMap.get(this)]);
+    },
 
     /** @borrows ApplicationWindow.prototype.close */
     closeWindow : null,
@@ -225,8 +245,29 @@ let ApplicationWindowView = {
      */
     dimension : null,
 
-    _contentView: null,
-    _contentTemplate: null,
+    get type() {
+        return viewToWindowMap.get(this).type;
+    },
+
+    get blocksScreen() {
+        return viewToWindowMap.get(this)._blocksScreen;
+    },
+
+    get hasFocus() {
+        return viewToWindowMap.get(this).hasFocus;
+    },
+
+    get viewId() {
+        return ViewId.create(viewToWindowMap.get(this));
+    },
+
+    get __tracker() {
+        return this.viewId;
+    },
+
+    get contentViewId() {
+        return viewToWindowMap.get(this)._contentViewId;
+    },
 
     /**
      * @constructs
@@ -234,12 +275,9 @@ let ApplicationWindowView = {
      * @param {string} applicationName - the application name.
      * @return {void}
      */
-    _make : function(window, applicationName) {
+    _make(window, applicationName) {
         this.id = `${applicationName}#${windowIndex[applicationName].length}`;
-        this.window = window,
         this.name = applicationName;
-        this._getZIndex = calculateZIndexLevel.bind(null, window);
-        this.closeWindow = window.close.bind(window);
         this.position = {
             _x: 150,
             _y: 150,
@@ -255,7 +293,9 @@ let ApplicationWindowView = {
             }
         };
         this.dimension = { height : 500, width : 600 };
-        this.calculateStyle = this.calculateStyle;
+        this._make = null;
+
+        viewToWindowMap.set(this, window);
     },
 };
 
@@ -265,9 +305,11 @@ let WorkSpaceBorderToolWindow = Make({
 
         this._view.side = 'unset';
 
-        this._view.isVisible = function(){
-            return this.side !== 'unset';
-        };
+        Object.defineProperty(this._view, 'isVisible', {
+            get() {
+                return this.side !== 'unset';
+            }
+        });
 
         this._view.position.x = null;
         this._view.position.y = null;
@@ -293,6 +335,10 @@ let WindowManager = {
     rootView : true,
     viewPort: null,
 
+    view: {
+        get windowList() { return zStack.map(window => window._view); },
+    },
+
     icons : [{
         name : '32',
         src : './userSpace/theme/window-manager.svg',
@@ -303,18 +349,23 @@ let WindowManager = {
      *
      * @type {string} [description]
      */
-    get windowList() { return zStack; },
-
     init(window) {
-        System.ApplicationManager.updateWindowManager(this.createApplicationWindow.bind(this));
+        ApplicationManager.updateWindowManager(this.createApplicationWindow.bind(this));
 
-        let [core] = System.ApplicationManager.getInstances('System::Core');
+        let [core] = ApplicationManager.getInstances('System::Core');
 
         core.on('ready', () => {
-            window.viewPort.bind({ template: 'window-manager-template', view: this });
+            window.viewPort.bind({ template: 'window-manager-template', view: this.view });
 
             this.viewPort = window.viewPort;
-            System.ApplicationManager.emit('WindowManager');
+            this.viewPort.scope.minimizeWindow = minimizeWindow;
+            this.viewPort.scope.maximizeWindow = maximizeWindow;
+            this.viewPort.scope.closeWindow = closeWindow;
+            this.viewPort.scope.focusWindow = focusWindow;
+            this.viewPort.scope.callbacks = ['minimizeWindow', 'maximizeWindow', 'closeWindow', 'focusWindow'];
+            this.viewPort.scope.registerCallbacks();
+
+            ApplicationManager.emit('WindowManager');
             console.log('WindowManager is ready!');
         });
     },
@@ -344,7 +395,7 @@ let WindowManager = {
         console.log('atempting to create new window!');
 
         window.on('change', () => this.viewPort.update());
-        window.on('focus', () => this.emit('focuschange', { application: System.ApplicationManager.getApplication(application.name) }));
+        window.on('focus', () => this.emit('focuschange', { application: ApplicationManager.getApplication(application.name) }));
         window.focus(FORCE_WINDOW_FOCUS);
 
         this.viewPort.update();

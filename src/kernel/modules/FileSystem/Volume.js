@@ -1,4 +1,4 @@
-import System from '../../../System';
+import SystemHandlers from '../../SystemHandlers';
 
 const Volume = {
     type : 'volume',
@@ -17,7 +17,7 @@ const Volume = {
      * @param {string} path
      */
     readFile() {
-        System.SystemHandlers.ErrorHandler.methodNotImplemented('Volume');
+        SystemHandlers.ErrorHandler.methodNotImplemented('Volume');
     },
 
     /**
@@ -25,7 +25,7 @@ const Volume = {
      * @param {string|Blob} content
      */
     writeFile() {
-        System.SystemHandlers.ErrorHandler.methodNotImplemented('Volume');
+        SystemHandlers.ErrorHandler.methodNotImplemented('Volume');
     }
 };
 

@@ -1,5 +1,5 @@
-import { Make } from '../../../af/util/make';
-import System from '../../System';
+import { Make } from 'application-frame/util/make';
+import Log from '../Log';
 
 let CallStack = {
 
@@ -44,15 +44,15 @@ let ErrorHandler = {
     },
 
     applicationNotAvailable(application) {
-        System.Log.use('ErrorHandler').error(`Application ${application} is not available on this system!`);
+        Log.use('ErrorHandler').error(`Application ${application} is not available on this system!`);
     },
 
     unknownSystemHandlerType(type) {
-        System.Log.use('ErrorHandler').error(`Unknown system handler type: ${type}`);
+        Log.use('ErrorHandler').error(`Unknown system handler type: ${type}`);
     },
 
     unknownSystemHandler(name) {
-        System.Log.use('ErrorHandler').error(`Unknown system handler: ${name}`);
+        Log.use('ErrorHandler').error(`Unknown system handler: ${name}`);
     }
 };
 

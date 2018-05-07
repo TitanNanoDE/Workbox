@@ -8,9 +8,7 @@
     </head>
     <body>
         <template id="main-view" replace>
-            <view-port bind-attr(view)="view._defaultView"
-                bind-attr(template)="view._defaultViewTemplateRef"
-                bind-getter(update)="view._viewPortUpdate"></view-port>
+            <view-port bind-attr(content)="viewPortContent"></view-port>
         </template>
 
         <template id="terminal-template" src="./core/System/templates/Terminal.html"></template>
@@ -25,6 +23,7 @@
         <template id="window-manager-ce-template" src="./core/System/templates/WindowManagerCE.html"></template>
         <template id="system-icon-template" src="./core/System/templates/SystemIcon.html"></template>
 
-        <script src="app.js"></script>
+        <!--- <script src="app.js"></script> -->
+        <script src="io.js"></script>
     </body>
 </html>

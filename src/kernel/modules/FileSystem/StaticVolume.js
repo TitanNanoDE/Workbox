@@ -1,6 +1,7 @@
-import System from '../../../System';
+import Log from '../../Log';
+import SystemHandlers from '../../SystemHandlers';
 import Volume from './Volume';
-import fileIndex from '../../../static-volume.json';
+import fileIndex from '../../static-volume.json';
 
 const StaticVolume = {
     type : 'staticvolume',
@@ -10,7 +11,7 @@ const StaticVolume = {
     constructor() {
         this.index = fileIndex.map(path => `/${path}`);
         this.ready = Promise.resolve();
-        this.logger = System.Log.use('FileSystem:StaticVolume');
+        this.logger = Log.use('FileSystem:StaticVolume');
 
         return this;
     },
@@ -19,7 +20,7 @@ const StaticVolume = {
      * @param {string} path
      */
     readFile() {
-        System.SystemHandlers.ErrorHandler.methodNotImplemented('Volume');
+        SystemHandlers.ErrorHandler.methodNotImplemented('Volume');
     },
 
     /**

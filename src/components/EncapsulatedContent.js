@@ -1,86 +1,46 @@
 import '@webcomponents/webcomponentsjs/webcomponents-sd-ce.js';
-import { DataBinding } from '@af-modules/databinding';
-import { HTMLElement, prepareConstructor } from 'application-frame/core/nativePrototype';
+import { CustomElement, CustomElementMeta } from './CustomElement';
 
 export const EncapsulatedContentMeta = {
     name: 'encapsulated-content',
-    observedAttributes: ['dirty'],
+    attributes: {},
+
+    __proto__: CustomElementMeta,
 };
+
 
 export const EncapsulatedContent = {
 
-    /** @type {ScopePrototype} */
-    contentscope: null,
+    _content: null,
 
-    contentview: null,
-
-    _alwaysFalse: false,
-
-    get dirty() {
-        return this.hasAttribute('dirty');
+    get content() {
+        return this._content;
     },
 
-    set dirty(value) {
-        value ? this.setAttribute('dirty', '') : this.removeAttribute('dirty');
-    },
-
-    get template() {
-        return this.getAttribute('template');
-    },
-
-    set template(value) {
-        value ? this.setAttribute('template', value) : this.removeAttribute('template');
-
-        if (this.contentscope) {
-            this.contentscope.__destroy__();
-        }
-
-        if (!value) {
+    set content(value) {
+        if (!value || value === ''){
             return;
         }
 
-        const template = document.querySelector(`#${this.template}`);
-
-        if (window.ShadyCSS) {
-            window.ShadyCSS.prepareTemplate(template, EncapsulatedContentMeta.name);
+        while (this.shadowRoot.childNodes.length) {
+            this.shadowRoot.removeChild(this.shadowRoot.firstChild);
         }
 
-        this.contentview = this.contentview || {};
-
-        const { scope, node } = DataBinding.createTemplateInstance({ template, scope: this.contentview });
-
-        this.contentscope = scope;
-        this.shadowRoot.appendChild(node);
+        this.shadowRoot.appendChild(value);
+        this._content = value;
     },
 
-    constructor: function ApplicationWindow() {
-        const instance = HTMLElement.constructor.apply(this);
-
-        instance._create();
-
-        return instance;
+    constructor: function EncapsulatedContent() {
+        return CustomElement.constructor.apply(this);
     },
 
     _create() {
         this.attachShadow({ mode: 'open' });
     },
 
-    connectedCallback() {
-    },
-
-    attributeChangedCallback(name) {
-        if (name === 'dirty' && this.dirty) {
-            this.contentscope.update();
-            this.dirty = false;
-            this.dispatchEvent(new Event('clean'));
-        }
-    },
-
-    __proto__: HTMLElement,
+    __proto__: CustomElement,
 };
 
-prepareConstructor(EncapsulatedContent);
-
-EncapsulatedContent.constructor.observedAttributes = EncapsulatedContentMeta.observedAttributes;
+EncapsulatedContentMeta.prepare(EncapsulatedContent);
 
 window.customElements.define(EncapsulatedContentMeta.name, EncapsulatedContent.constructor);

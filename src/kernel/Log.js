@@ -1,7 +1,5 @@
- 'use strict';
-
-import { Make } from '../../af/util/make';
-import EventTarget from '../../af/core/EventTarget';
+import { Make } from 'application-frame/util/make';
+import EventTarget from 'application-frame/core/EventTarget';
 
 let LogInterface = {
     _name : '',

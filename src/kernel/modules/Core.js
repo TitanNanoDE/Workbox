@@ -1,8 +1,9 @@
-import { Make } from '../../../af/util/make';
-import System from '../../System';
-import Application from '../../../af/core/Application';
+import { Make } from 'application-frame/util/make';
+import Log from '../Log';
+import ApplicationManager from '../ApplicationManager';
+import Application from 'application-frame/core/Application';
 //import NetworkRequest from '../../../af/core/prototypes/NetworkRequest.js';
-import SystemModules from '../modules';
+import * as SystemModules from '../modules';
 
 const { create } = Object;
 
@@ -30,10 +31,10 @@ let SystemCore = Make({
     },
 
     init : function(){
-        this._logger = System.Log.use(this.name);
+        this._logger = Log.use(this.name);
         this.loadModules();
 
-        let [fileSystem] = System.ApplicationManager.getInstances('System::FileSystem');
+        let [fileSystem] = ApplicationManager.getInstances('System::FileSystem');
         const systemVolume = create(fileSystem.volumePrototypes.StaticVolume).constructor();
         const volume = create(fileSystem.volumePrototypes.IndexedDBVolume).constructor();
 
@@ -57,11 +58,13 @@ let SystemCore = Make({
     },
 
     loadModules : function(){
-        this._logger.log(`found ${SystemModules.length} modules!`);
+        const SystemModulesList = Object.values(SystemModules);
+
+        this._logger.log(`found ${SystemModulesList.length} modules!`);
         this._logger.log('loading system modules...');
 
-        SystemModules.forEach(module => {
-            System.ApplicationManager.register(module).launch(module.name);
+        SystemModulesList.forEach(module => {
+            ApplicationManager.register(module).launch(module.name);
         });
     }
 

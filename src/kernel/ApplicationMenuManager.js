@@ -1,4 +1,4 @@
-import Log from '../System/Log';
+import Log from './Log';
 
 export const ApplicationMenu = {
     entries: null,

@@ -8,24 +8,21 @@
     <window-manager>
         <template bind-repeat="window in view.windowList">
             <application-window
-                bind-attr(height)="window._view.dimension.height"
-                bind-attr(width)="window._view.dimension.width"
-                bind-attr(top)="window._view.position.y=move"
-                bind-attr(left)="window._view.position.x=move"
+                bind-attr(height)="window.dimension.height"
+                bind-attr(width)="window.dimension.width"
+                bind-attr(top)="window.position.y=move"
+                bind-attr(left)="window.position.x=move"
                 bind-attr(type)="window.type"
-                bind-attr(orientation)="window._view.side"
-                bind-event(close)="window.close"
-                bind-event(minimize)="window.minimize"
-                bind-event(maximimize)="window.maximimize"
-                bind-attr(blocking)="window._blocksScreen"
-                bind-attr(order)="window._view._getZIndex()"
+                bind-attr(orientation)="window.side"
+                bind-event(close)="Handoff(view.closeWindow, window.viewId)"
+                bind-event(minimize)="Handoff(view.minimizeWindow, window.viewId)"
+                bind-event(maximimize)="Handoff(view.maximizeWinow, window.viewId)"
+                bind-attr(blocking)="window.blocksScreen"
+                bind-attr(order)="window.zIndex"
                 bind-class="{ !blured: view._not(window.hasFocus) }"
-                bind-event(click)="window.focus">
-                <span slot="title">{{window._view.name}}</span>
-                <encapsulated-content
-                    bind-attr(contentView)="window._view._contentView"
-                    bind-attr(template)="window._view._contentTemplate"
-                    bind-attr(dirty)="window.viewPort._dirty=clean"></encapsulated-content>
+                bind-event(click)="Handoff(view.focusWindow, window.viewId)">
+                <span slot="title">{{window.name}}</span>
+                <encapsulated-content bind-attr(content)="getView(window.contentViewId)"></encapsulated-content>
             </application-window>
         </template>
     </window-manager>
