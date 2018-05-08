@@ -30,7 +30,7 @@ export const ApplicationWindow = {
 
     _scope: null,
 
-    _active : false,
+    _pickedUp : false,
     _localOffset : { x: 0, y: 0},
     _listener: null,
     __height: null,
@@ -101,8 +101,13 @@ export const ApplicationWindow = {
      * @return {string} the value of the style attribute.
      */
     _calculateStyle() {
-        const position = (this.type === 'default') ? `transform: translate3D(${this.left}px, ${this.top}px, 0);` : '';
-        const dimensions = (this.type === 'default') ? `height: ${this.height}px; width: ${this.width}px;` : '';
+        const isDefault = (this.type === 'default');
+        const left = isDefault ? this.left : null;
+        const top = isDefault ? this.top : null;
+        const position = this._pickedUp ?
+            `transform: translate3D(${this.left}px, ${this.top}px, 0);` :
+            `left: ${left}px; top: ${top}px;`;
+        const dimensions = isDefault ? `height: ${this.height}px; width: ${this.width}px;` : '';
         const zIndex = `z-index: ${this.order};`;
 
         return `${position} ${dimensions} ${zIndex}`;
@@ -128,7 +133,7 @@ export const ApplicationWindow = {
         let offsetX = e.pageX - this.left;
         let offsetY = e.pageY - this.top;
 
-        this._active = true;
+        this._pickedUp = true;
         this._listener = this._onWindowMove.bind(this);
         this._localOffset = { x: offsetX, y: offsetY };
 
@@ -141,7 +146,7 @@ export const ApplicationWindow = {
      * @return {void}
      */
     _onWindowDrop() {
-        this._active = false;
+        this._pickedUp = false;
         window.removeEventListener('mousemove', this._listener);
     },
 
@@ -151,7 +156,7 @@ export const ApplicationWindow = {
      * @return {undefined}
      */
     _onWindowMove(e) {
-        if (!this._active || e.clientX <= 0 || e.clientY <= 0) {
+        if (!this._pickedUp || e.clientX <= 0 || e.clientY <= 0) {
             return;
         }
 
@@ -174,7 +179,12 @@ export const ApplicationWindow = {
     },
 
     _onWindowClose() {
-        this.dispatchEvent(new Event('close', { bubbles: true }));
+        this.classList.add('leave');
+
+        this.addEventListener('animationend', () => {
+            this.dispatchEvent(new Event('close', { bubbles: true }));
+            this.classList.remove('leave');
+        }, { once: true });
     },
 
     _onWindowMinimize() {
@@ -199,6 +209,11 @@ export const ApplicationWindow = {
 
         this.dispatchEvent(new Event('move'), { x, y });
         this._scope.update();
+    },
+
+    connectedCallback() {
+        this.classList.add('enter');
+        this.addEventListener('animationend', () => this.classList.remove('enter'), { once: true });
     },
 
     __proto__: HTMLElement,

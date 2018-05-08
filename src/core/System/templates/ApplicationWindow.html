@@ -1,5 +1,33 @@
 <template>
     <style media="screen">
+        @keyframes window-open {
+            0% {
+              transform: scale3d(0, 0, 0);
+            }
+
+            25% {
+              transform: scale3d(1.1, 1.1, 1.1);
+            }
+
+            50% {
+              transform: scale3d(0.9, 0.9, 0.9);
+            }
+
+            75% {
+              transform: scale3d(1.05, 1.05, 1.05);
+            }
+
+            100% {
+              transform: scale3d(1, 1, 1);
+            }
+        }
+
+        @keyframes window-close {
+            to {
+                transform: scale3d(0, 0, 0);
+            }
+        }
+
         :host([type="default"]) {
             position: absolute;
             height: 400px;
@@ -15,6 +43,14 @@
 
         :host([type="default"].blured) .windowTitle {
             filter: grayscale(80%) blur(.5px);
+        }
+
+        :host([type="default"].enter) {
+            animation: window-open .3s ease-in-out 1;
+        }
+
+        :host([type="default"].leave) {
+            animation: window-close .3s ease-in-out 1;
         }
 
         .windowTitle {

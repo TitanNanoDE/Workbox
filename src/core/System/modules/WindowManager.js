@@ -13,9 +13,9 @@ const STACK_MODE_DEFAULT = 'default';
 
 const FORCE_WINDOW_FOCUS = Symbol('ForceWindowFocus');
 
-let windowIndex = {};
-
-let zStack = [];
+const windowIndex = {};
+const zStack = [];
+const windowList = [];
 
 let calculateZIndexLevel = function(window) {
     if ( window._stackMode === STACK_MODE_ALWAYS_BEHIND) {
@@ -103,6 +103,9 @@ const ApplicationWindow = {
 
         index = windowIndex[this._app].indexOf(this);
         windowIndex[this._app].splice(index, REMOVE_ONE_ITEM);
+
+        index = windowList.indexOf(this);
+        windowList.splice(index, REMOVE_ONE_ITEM);
 
         this.emit('close');
     },
@@ -303,7 +306,7 @@ let WindowManager = {
      *
      * @type {string} [description]
      */
-    get windowList() { return zStack; },
+    get windowList() { return windowList; },
 
     init(window) {
         System.ApplicationManager.updateWindowManager(this.createApplicationWindow.bind(this));
@@ -340,6 +343,7 @@ let WindowManager = {
 
         windowIndex[application.name].push(window);
         zStack.push(window);
+        windowList.push(window);
 
         console.log('atempting to create new window!');
 
