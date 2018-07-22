@@ -11,8 +11,13 @@ export const deepAssign = function(target, ...args) {
 
                     let targetItem = null;
 
+                    TRACKER:
                     if (item.__tracker) {
                         const targetIndex = target[key].findIndex(targetItem => item.__tracker === targetItem.__tracker);
+
+                        if (targetIndex < 0) {
+                            break TRACKER;
+                        }
 
                         [targetItem] = target[key].splice(targetIndex, 1);
                     } else {
@@ -20,7 +25,7 @@ export const deepAssign = function(target, ...args) {
                     }
 
                     if (targetItem) {
-                        const mergedItem = (typeof targetItem === 'object' || targetItem === null) ?
+                        const mergedItem = (typeof targetItem === 'object') ?
                             deepAssign(targetItem, item) : item;
 
                         target[key].splice(index, 0, mergedItem);

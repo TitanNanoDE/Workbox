@@ -18,7 +18,9 @@ const getViewProxy = function(viewData, viewId, ...parents) {
                     return target[property];
                 }
 
-                return getViewProxy(target[property], viewId, property, ...parents);
+                const tracker = target[property].__tracker && `{track:${target[property].__tracker}}`;
+
+                return getViewProxy(target[property], viewId, (tracker || property), ...parents);
             },
 
             set(target, property, value) {

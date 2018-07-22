@@ -48,6 +48,13 @@ export const ViewControllerProxied = {
             let host = this._updateBuffer;
 
             event.path.forEach(item => {
+                const tracker = item.match(/\{track:([^}]+)\}/);
+
+                if (tracker) {
+                    host = host.find(item => item.__tracker === tracker[1]);
+                    return;
+                }
+
                 host = host[item];
             });
 

@@ -2,6 +2,7 @@ import UrlResolver from '../UrlResolver';
 import Application from 'application-frame/core/Application';
 import ApplicationManager from '../ApplicationManager';
 import { ApplicationMenu, default as ApplicationMenuManager } from '../ApplicationMenuManager';
+import ViewId from '../../shared/ViewId';
 
 const { create } = Object;
 
@@ -17,6 +18,18 @@ const mapDirectoryIndex = function(index) {
             name : key,
             isDir : typeof index[key] === 'object',
             isFile : typeof index[key] === 'boolean',
+
+            get classes() {
+                return `${this.isDir && 'dirType ' || ''}${this.isFile && 'fileType' || ''}`;
+            },
+
+            get viewId() {
+                return ViewId.create(this);
+            },
+
+            get __tracker() {
+                return this.viewId;
+            }
         };
     });
 };
@@ -25,12 +38,13 @@ const createFileMangerWindow = function(application) {
     const FileSystem = getFileSystem();
     const window = ApplicationManager.requestApplicationMainWindow(application, 'default');
     window.viewPort.bind({ template : WorkSpace.templates.FileManagerWindow });
-    /*window.scope.goToPath = function(path) {
-        let scope = this.__parentScope__ || this;
+    window.scope.callbacks = ['openDir', 'goBack', 'goForward'];
+
+    window.scope.goToPath = function(path) {
+        const scope = window.scope;
 
         scope.currentPath = path;
         scope.currentDir = mapDirectoryIndex(FileSystem.ls(scope.currentPath));
-
         scope.history.stack = scope.history.stack.slice(0, scope.history.cursor + 1);
         scope.history.stack.push(scope.currentPath);
         scope.history.cursor = scope.history.stack.length - 1;
@@ -38,12 +52,15 @@ const createFileMangerWindow = function(application) {
         window.title = scope.currentPath;
     };
 
-    window.scope.openDir = function(event, scope) {
-        if (scope.item.isDir) {
-            this.goToPath(`${this.currentPath}${scope.item.name}/`);
+    window.scope.openDir = function(viewId) {
+        const scope = window.scope;
+        const item = this.currentDir.find(item => item.viewId === viewId);
+
+        if (item.isDir) {
+            this.goToPath(`${this.currentPath}${item.name}/`);
         }
 
-        scope.__parentScope__.update();
+        scope.update();
     };
 
     window.scope.moveToCursor = function() {
@@ -60,6 +77,7 @@ const createFileMangerWindow = function(application) {
             this.history.cursor -= 1;
 
             this.moveToCursor();
+            window.scope.update();
         }
     };
 
@@ -68,15 +86,8 @@ const createFileMangerWindow = function(application) {
             this.history.cursor += 1;
 
             this.moveToCursor();
+            window.scope.update();
         }
-    };
-
-    window.scope.addDirClass = function(item) {
-        return item.isDir && 'dirType' || '';
-    };
-
-    window.scope.addFileClass = function(item) {
-        return item.isFile && 'fileType' || '';
     };
 
     window.scope.history = {
@@ -92,7 +103,8 @@ const createFileMangerWindow = function(application) {
         }
     };
 
-    window.scope.goToPath('/'); */
+    window.scope.registerCallbacks();
+    window.scope.goToPath('/');
     window.viewPort.update();
 };
 
@@ -105,12 +117,28 @@ const createMainMenuWindow = function(application) {
     window.viewPort.bind({ template: WorkSpace.templates.MainMenuWindow });
     window.scope.currentMainMenu = null;
     window.scope.currentApplication = null;
-    /*window.scope.primaryEntryClick = function() {};
-    window.scope.subEntryClick = function(){};
+    window.scope.callbacks = ['primaryEntry', 'subEntryClick', 'onAboutSystem'];
+    window.scope.primaryEntryClick = function() {};
+    window.scope.subEntryClick = function(menuId, entryId) {
+        const menu = this.currentMenu.menus.find(menu => menu.id === menuId);
+
+        if (!menu) {
+            throw 'menu has no, or an invalid id!';
+        }
+
+        const entry = menu.entries.find(entry => entry.id === entryId);
+
+        if (!entry) {
+            throw 'entry has no, or an invalid id!';
+        }
+
+        return entry.handler();
+    };
     window.scope.onAboutSystem = function() {
         ApplicationManager.launch('system.js.about', WorkSpace.name);
-    };*/
+    };
 
+    window.scope.registerCallbacks();
     window.dockTo('top');
     window.apperanceMode('screenBlocking');
 
@@ -135,15 +163,20 @@ const WorkSpace = {
 
     applicationMenu: create(ApplicationMenu).constructor([
         {
+            get id() { return ViewId.create(this); },
             title: 'About',
             get handler() { }
         }, {
+            get id() { return ViewId.create(this); },
             title: 'Quit',
             get handler() { },
         }
     ], [{
         title: 'File',
+        get id() { return ViewId.create(this); },
+        
         entries: [{
+            get id() { return ViewId.create(this); },
             title: 'New Window',
             get handler() {
                 return WorkSpace.createNewFileManagerWindow.bind(WorkSpace);

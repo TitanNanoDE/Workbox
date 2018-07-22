@@ -4,7 +4,7 @@
   "description": "",
   "main": "main.js",
   "dependencies": {
-    "@af-modules/databinding": "^1.2.0-dev.9",
+    "@af-modules/databinding": "^1.2.0-dev.12",
     "@webcomponents/webcomponentsjs": "^1.0.20",
     "application-frame": "^0.7.0-dev.5",
     "babel-core": "^6.25.0",
