@@ -42,7 +42,8 @@ let calculateZIndexLevel = function(window) {
  *
  * @return {void}
  */
-const closeWindow = function(index) {
+const closeWindow = function(id) {
+    let index = zStack.findIndex(window => window._view.viewId === id);
     const window = zStack[index];
 
     window.emit('change');
@@ -73,6 +74,10 @@ const minimizeWindow = function() {
 
 const focusWindow = function(viewId) {
     const window = zStack.find(window => window._view.viewId === viewId);
+
+    if (!window) {
+        return;
+    }
 
     window.focus();
 };
