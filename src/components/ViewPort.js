@@ -1,4 +1,4 @@
-import '@webcomponents/webcomponentsjs';
+import '@webcomponents/webcomponentsjs/webcomponents-sd-ce.js';
 import { CustomElement, CustomElementMeta } from './CustomElement';
 
 const template = document.createElement('template');
