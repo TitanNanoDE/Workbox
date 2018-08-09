@@ -1,7 +1,10 @@
 import { CurrentThread } from '../threading';
+import WindowsInterface from './ThreadInterfaces/WindowInterface';
 
 const KernelThread  = {
-    interfaces: [],
+    interfaces: [
+        WindowsInterface
+    ],
 
     __proto__: CurrentThread,
 };

@@ -34,6 +34,44 @@ let initApplication = function(instance, manager) {
     }
 };
 
+const applicationRemoteLaunch = function(applicationMeta, applicationManager) {
+    SystemHandlers.ApplicationHandler
+        .remoteLaunch(applicationMeta.name)
+        .then(instance => {
+            logger.log(`launching ${applicationMeta.name}...`);
+
+            if (!instanceList[applicationMeta.name]) {
+                instanceList[applicationMeta.name] = [];
+            }
+            
+            instanceList[applicationMeta.name].push(instance);
+
+            return Promise.all([instance, fetchRemoteInstance(instance)]);
+        }).then(([remoteInstance, instance]) => {
+            logger.log(`Application ${applicationMeta.name} loaded!`);
+
+            if(instance.isHeadless) {
+                instance.init();
+
+                return;
+            }
+
+            return applicationManager._windowManagerReady.then(() => {
+                const mainWindow = instance.noMainWindow ? undefined : getSendableWindow(applicationManager.requestApplicationMainWindow(instance));
+
+                applicationManager.emit('applicationLaunched', ApplicationInfo.new(instance));
+                remoteInstance.init(mainWindow);
+            });
+        }).catch(e => logger.error(e));
+};
+
+const getSendableWindow = function(window) {
+    const id = window._id;
+    const application = window._app;
+
+    return { id, application };
+};
+
 /**
  * @lends ApplicationInfo.prototype
  */
@@ -48,13 +86,35 @@ let ApplicationInfo = {
      * @param {Application} application - the application from which the information should be extracted from.
      * @return {void}
      */
-    _make : function(application) {
+    _make(...args) {
+        return this.constructor(...args);
+    },
+
+    constructor(application) {
         this.name = application.name;
         this.displayName = application.displayName;
         this.icons = application.icons ? application.icons.slice() : [];
         this.headless = application.headless;
         this.symbol = applicationSymbols.get(application);
+    },
+
+    new({ name, displayName, icons, headless, symbol }) {
+        icons = icons ? icons.slice() : [];
+
+        return { name, displayName, icons, headless, symbol, __proto__: this };
     }
+};
+
+const fetchRemoteInstance = function(remoteInstance) {
+    return Promise.all([
+        remoteInstance.name(),
+        remoteInstance.displayName(),
+        remoteInstance.icons(),
+        remoteInstance.noMainWindow(),
+        remoteInstance.headless(),
+    ]).then(([name, displayName, icons, noMainWindow, headless]) => {
+        return { name, displayName, icons, noMainWindow, headless };
+    });
 };
 
 const ApplicationManager = {
@@ -64,13 +124,19 @@ const ApplicationManager = {
     _fakeWindow: null,
     _scope: null,
     _contentScope: null,
+    _windowManagerReady: null,
 
     init() {
         super.constructor();
 
         this._scope = create(ViewController).constructor('main-view');
 
-        this.on('WindowManager', () => windowManagerReady = true);
+        this._windowManagerReady = new Promise((success) => {
+            this.on('WindowManager', () => {
+                windowManagerReady = true;
+                success();
+            });
+        });
 
         // fake window
         const getScope = () => this._contentScope;
@@ -146,8 +212,7 @@ const ApplicationManager = {
      * @param {Application} source - the application which triggered the launch
      * @return {void}
      */
-    launch : function(appName, source) {
-
+    launch(appName, source) {
         if (!registeredApplications[appName]) {
             return SystemHandlers.ErrorHandler.applicationNotAvailable(appName);
         }
@@ -155,6 +220,10 @@ const ApplicationManager = {
         if (instanceList[appName] && instanceList[appName].length > 0) {
             logger.log(`Application ${appName} is already running!`);
             return;
+        }
+
+        if (registeredApplications[appName].remote) {
+            return applicationRemoteLaunch(registeredApplications[appName], this);
         }
 
         const instance = Make(registeredApplications[appName])(source);

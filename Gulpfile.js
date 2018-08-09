@@ -7,9 +7,9 @@ const gulp 	 = require('gulp'),
     systemModulesBuilder = require('./Gulp/systemModulesBuilder'),
     buildStage = require('./Gulp/buildStage'),
     bundleTemplates = require('gulp-bundle-templates');
-const rename = require('gulp-rename');
 const webpackStream = require('webpack-stream');
 const named = require('vinyl-named');
+const rename = require('gulp-rename');
 const filelist = require('gulp-filelist');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
@@ -20,17 +20,6 @@ gulp.task('clean', () => {
 gulp.task('copy:userspace', [],  () => {
     return gulp.src(['src/userSpace/**'])
         .pipe(gulp.dest('dist/userSpace'));
-});
-
-gulp.task('copy:packages', [], () => {
-    return gulp.src(['src/packages/**/dist/package.js'])
-        .pipe(rename((path) => {
-            const packageName = path.dirname.match(/[^/]*/)[0];
-
-            path.dirname = '';
-            path.basename = packageName;
-        }))
-        .pipe(gulp.dest('dist/packages'));
 });
 
 gulp.task('copy:styles', [], () => {
@@ -68,7 +57,7 @@ gulp.task('webpack', [buildStage, systemModulesBuilder, 'build:static-volume'], 
             pathinfo: true,
             path : path.join(__dirname, 'dist'),
             filename : '[name].js',
-            sourceMapFilename: '[file]_[hash].map',
+            sourceMapFilename: '[file].map',
         },
         module: {
             rules: [{
@@ -112,7 +101,7 @@ gulp.task('webpack', [buildStage, systemModulesBuilder, 'build:static-volume'], 
 });
 
 gulp.task('build:threads', [buildStage, systemModulesBuilder, 'build:static-volume'], () => {
-    return gulp.src(['build/kernel/index.js'])
+    return gulp.src(['build/kernel/index.js', 'build/process/index.js'])
         .pipe(named((file) => {
             const packageName = path.parse(file.path).dir.match(/[^/]*$/)[0];
 
@@ -122,7 +111,7 @@ gulp.task('build:threads', [buildStage, systemModulesBuilder, 'build:static-volu
             context : path.join(__dirname, 'build'),
             output: {
                 filename: path.join('[name].js'),
-                sourceMapFilename: '[file]_[hash].map'
+                sourceMapFilename: '[file].map'
             },
             module: {
                 rules: [{
@@ -156,16 +145,40 @@ gulp.task('build:threads', [buildStage, systemModulesBuilder, 'build:static-volu
         .pipe(gulp.dest('dist/'));
 });
 
-gulp.task('build:packages', () => {
-    return gulp.src('src/packages/**/index.js')
-        .pipe(named((file) => {
-            const packageName = path.parse(file.path).dir.match(/[^/]*$/)[0];
+const getPackageName = function(file) {
+    const packageName = path.parse(file.path).dir.match(/[^/]*$/)[0];
 
-            return packageName;
-        }))
+    return packageName;
+};
+
+const transformFileToPackage = function(path) {
+    path.basename = path.dirname;
+    path.dirname = '';
+
+    return path;
+};
+
+gulp.task('build:packages', () => {
+    return gulp.src('src/packages/*/index.js')
+        .pipe(named(getPackageName))
         .pipe(webpackStream({
             output: {
                 filename: path.join('[name].js'),
+                libraryTarget: 'umd',
+                library: '[name]',
+            },
+
+            externals: ['System']
+        }))
+        .pipe(gulp.dest('dist/packages/'));
+});
+
+gulp.task('build:packages:views', () => {
+    return gulp.src('src/packages/*/views.js')
+        .pipe(named(getPackageName))
+        .pipe(webpackStream({
+            output: {
+                filename: path.join('[name].views.js'),
                 libraryTarget: 'umd',
                 library: '[name]',
             },
@@ -176,9 +189,13 @@ gulp.task('build:packages', () => {
                     use: ['html-loader']
                 }],
             },
-
-            externals: ['System']
         }))
+        .pipe(gulp.dest('dist/packages/'));
+});
+
+gulp.task('copy:package-manifests', () => {
+    return gulp.src('src/packages/**/manifest.json')
+        .pipe(rename(transformFileToPackage))
         .pipe(gulp.dest('dist/packages/'));
 });
 
@@ -187,5 +204,5 @@ gulp.task('watch', ['default'], () => {
 });
 
 gulp.task('default', (cb) => {
-    runSequence('clean', ['copy', 'build:html', 'build:packages', 'build:threads', 'webpack'], cb);
+    runSequence('clean', ['copy', 'build:html', 'build:packages', 'copy:package-manifests', 'build:packages:views', 'build:threads', 'webpack'], cb);
 });

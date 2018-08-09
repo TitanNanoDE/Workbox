@@ -1,15 +1,8 @@
 import System from 'System';
-import template from './template';
-
-document.body.appendChild(template);
 
 const AboutSystemJS = {
 
     name: 'system.js.about',
-
-    resources: {
-        'icons/about-icon.png': 'theme://about.svg',
-    },
 
     icons: [{
         name: '32',
@@ -22,7 +15,7 @@ const AboutSystemJS = {
 
     init(window) {
         window.title = 'About SystemJS';
-        window.viewPort.bind({ template: template.id });
+        window.attachView('main-template');
         window.setDimension(400, 200);
     },
 

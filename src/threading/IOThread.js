@@ -12,8 +12,8 @@ const IOThread = {
     _worker: new BroadcastChannel('threads/io'),
 
     constructor() {
-        this._worker.onmessage = this.onProcessMessage.bind(this);
-        this._setupInterfaces();
+        // we can't let all IOThread interfaces listen to message events they
+        // can't handle. We have to perform some kind of filtering here.
 
         return this._createInterface();
     },

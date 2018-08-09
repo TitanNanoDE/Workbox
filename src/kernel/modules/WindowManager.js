@@ -99,6 +99,7 @@ const ApplicationWindow = {
     _app : null,
     _contentView: null,
     _contentViewId: null,
+    _id: null,
 
     /**
      * @constructs
@@ -111,7 +112,9 @@ const ApplicationWindow = {
 
         this._view = Make(ApplicationWindowView)(this, applicationName);
         this._app = applicationName;
+        this._id = Math.round(Math.random() * 100 + performance.now());
         this.type = type;
+
         this.viewPort = {
             _window: this,
             bind: ({ template, view = {}, }) => {
@@ -410,6 +413,18 @@ let WindowManager = {
 
     _not(value) {
         return !value;
+    },
+
+    /**
+     * locates the window of an application
+     *
+     * @param  {string} application
+     * @param  {number} windowId
+     *
+     * @return {ApplicationWindow}
+     */
+    getWindow(application, windowId) {
+        return windowIndex[application].find(window => window._id === windowId);
     },
 
     __proto__: Application,

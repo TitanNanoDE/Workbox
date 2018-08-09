@@ -53,6 +53,14 @@ let ErrorHandler = {
 
     unknownSystemHandler(name) {
         Log.use('ErrorHandler').error(`Unknown system handler: ${name}`);
+    },
+
+    unclaimedSystemHandler(type, name) {
+        const message = `System handler ${name} of type ${name} has not been claimed!`;
+
+        Log.use('ErrorHandler').error(message);
+
+        return Promise.reject(message);
     }
 };
 

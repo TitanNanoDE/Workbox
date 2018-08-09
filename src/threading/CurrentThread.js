@@ -11,7 +11,7 @@ const CurrentThread = {
 
         if (!IS_WORKER) {
             this._worker = new Worker(args[0]);
-            this._worker.onmessage = this.onProcessMessage.bind(this);
+            this._worker.onmessage = this._onProcessMessage.bind(this);
             this._callbacks = {};
             this.call = undefined;
             this.publish('threads/io');
@@ -20,7 +20,7 @@ const CurrentThread = {
         }
 
         this._worker = self;
-        this._worker.onmessage = this.onProcessMessage.bind(this);
+        this._worker.onmessage = this._onProcessMessage.bind(this);
         this._callbacks = {};
 
         if (args[0] && args[0].init) {
@@ -30,8 +30,15 @@ const CurrentThread = {
 
     publish(identifier) {
         const channel = new BroadcastChannel(identifier);
+        const oldPostMessage = this._postMessage;
 
-        channel.onmessage = this.onProcessMessage.bind(this);
+        channel.onmessage = this._onProcessMessage.bind(this);
+
+        this._postMessage = function(...args) {
+            channel.postMessage(...args);
+
+            return oldPostMessage.apply(this, args);
+        };
     },
 
     __proto__: Thread,

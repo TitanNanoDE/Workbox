@@ -1,0 +1,7 @@
+{
+    "name": "system.js.about",
+
+    "resources": {
+        "icons/about-icon.png": "theme://about.svg"
+    }
+}
