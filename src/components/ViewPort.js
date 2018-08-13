@@ -1,9 +1,5 @@
-import '@webcomponents/webcomponentsjs';
-import { HTMLElement, prepareConstructor } from 'application-frame/core/nativePrototype';
-import { DataBinding } from '@af-modules/databinding';
-
-const viewportTemplates = new WeakMap();
-const viewportInstances = new WeakMap();
+import '@webcomponents/webcomponentsjs/webcomponents-sd-ce.js';
+import { CustomElement, CustomElementMeta } from './CustomElement';
 
 const template = document.createElement('template');
 template.content.appendChild(document.createElement('style'))
@@ -16,98 +12,54 @@ template.content.appendChild(document.createElement('style'))
         }`;
 template.content.appendChild(document.createElement('slot'));
 
+const ViewPortMeta = {
+    name: 'view-port',
+    template,
+
+    attributes: {},
+
+    __proto__: CustomElementMeta,
+};
+
 const ViewPort = {
 
-    view: null,
+    _content: null,
 
-    get template() {
-        return this.getAttribute('template');
+    constructor: function ViewPort() {
+        return CustomElement.constructor.apply(this);
     },
 
-    set template(value) {
-        this.setAttribute('template', value);
+    get content() {
+        return this._content;
     },
 
-    constructor: function() {
-        const instance = HTMLElement.constructor.apply(this);
-
-        instance.view = {};
-        viewportTemplates.set(instance, document.createElement('template'));
-
-        return instance;
-    },
-
-    update() {
-        if (viewportInstances.has(this)) {
-            return viewportInstances.get(this).update();
+    set content(value) {
+        if (!value || value === ''){
+            return;
         }
 
-        return false;
-    },
-
-
-    get scope() {
-        if (viewportInstances.has(this)) {
-            return viewportInstances.get(this);
+        while (this.childNodes.length) {
+            this.removeChild(this.firstChild);
         }
 
-        return {};
+        this.appendChild(value);
+        this._content = value;
     },
 
     connectedCallback() {
         this.attachShadow({ mode: 'open' });
-        this.shadowRoot.appendChild(document.importNode(template.content, true));
-
-        if (window.ShadyCSS) {
-            window.ShadyCSS.styleElement(this);
-        }
-
-        this._renderTemplate();
+        this.shadowRoot.appendChild(document.importNode(ViewPortMeta.template.content, true));
     },
 
-    attributeChangedCallback(name) {
-        if (name === 'template') {
-            return this._renderTemplate();
-        }
-    },
-
-    _renderTemplate() {
-        if (!this.template) {
-            return;
-        }
-
-        if (viewportInstances.has(this)) {
-            const scope = viewportInstances.get(this);
-
-            if ('__destroy__' in scope) {
-                scope.__destroy__();
-            }
-
-            this.childNodes.forEach(child => this.removeChild(child));
-
-            viewportInstances.delete(this);
-        }
-
-        const template = viewportTemplates.get(this);
-        template.setAttribute('ref', this.template);
-
-        const result = DataBinding.createTemplateInstance({ template, scope: this.view });
-
-        viewportInstances.set(this, result.scope);
-        this.appendChild(result.node);
-    },
-
-    __proto__: HTMLElement,
+    __proto__: CustomElement,
 };
 
-ViewPort.constructor.observedAttributes = ['template'];
-
-prepareConstructor(ViewPort);
+ViewPortMeta.prepare(ViewPort);
 
 if (window.ShadyCSS) {
-    window.ShadyCSS.prepareTemplate(template, 'view-port');
+    window.ShadyCSS.prepareTemplate(ViewPortMeta.template, ViewPortMeta.name);
 }
 
 if (window.customElements) {
-    window.customElements.define('view-port', ViewPort.constructor);
+    window.customElements.define(ViewPortMeta.name, ViewPort.constructor);
 }

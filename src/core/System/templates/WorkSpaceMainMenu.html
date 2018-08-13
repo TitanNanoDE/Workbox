@@ -52,11 +52,11 @@
         <li class="item" tabindex="0">
             <system-icon name="home"></system-icon>
             <ul class="sub-menu">
-                <li class="item" bind-event(click)="view.onAboutSystem">About</class>
+                <li class="item" bind-event(click)="Handoff(view.onAboutSystem)">About</class>
             </ul>
         </li>
         <li class="item" tabindex="0">
-            <span>{{view.getTitle(view.currentApplication)}}</span>
+            <span>{{view.currentApplication.title}}</span>
 
             <ul class="sub-menu">
                 <template bind-repeat="entry in view.currentMenu.entries">
@@ -73,7 +73,7 @@
 
                 <ul class="sub-menu">
                     <template bind-repeat="entry in menu.entries">
-                        <li class="item" bind-event(click)="entry.handler">
+                        <li class="item" bind-event(click)="Handoff(view.subEntryClick, menu.id, entry.id)">
                             <span>{{entry.title}}</span>
                         </li>
                     </template>

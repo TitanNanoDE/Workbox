@@ -4,7 +4,7 @@
   "description": "",
   "main": "main.js",
   "dependencies": {
-    "@af-modules/databinding": "^1.2.0-dev.9",
+    "@af-modules/databinding": "^1.2.0-dev.12",
     "@webcomponents/webcomponentsjs": "^1.0.20",
     "application-frame": "^0.7.0-dev.5",
     "babel-core": "^6.25.0",
@@ -12,7 +12,9 @@
     "gulp-bundle-templates": "^1.0.6",
     "gulp-rename": "^1.2.2",
     "html-loader": "^0.5.5",
+    "subworkers": "^1.0.0",
     "systemjs": "^0.21.2",
+    "uuid": "^3.2.1",
     "vinyl-named": "^1.1.0",
     "webpack-stream": "^4.0.3"
   },
@@ -36,7 +38,7 @@
     "run-sequence": "^1.1.5",
     "tern": "^0.21.0",
     "tern-lint": "git+https://github.com/angelozerr/tern-lint.git",
-    "webpack": "^3.8.1"
+    "webpack": "^4.6.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

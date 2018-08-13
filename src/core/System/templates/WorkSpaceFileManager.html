@@ -85,16 +85,16 @@
     <div class="file-manager-container">
         <div class="toolbar">
             <div class="material-icons toolbar-icon"
-                bind-event(click)="view.goBack"
+                bind-event(click)="Handoff(view.goBack)"
                 bind-enabled="view.history.canGoBack">arrow_back</div>
             <div class="material-icons toolbar-icon"
-                bind-event(click)="view.goForward"
+                bind-event(click)="Handoff(view.goForward)"
                 bind-enabled="view.history.canGoForward">arrow_forward</div>
         </div>
         <div class="fileGrid">
             <template bind-repeat="item in view.currentDir">
-                <div class="item" bind-event(click)="view.openDir">
-                    <div class="file {{view.addDirClass(item)}}{{view.addFileClass(item)}}"></div>
+                <div class="item" bind-event(click)="Handoff(view.openDir, item.viewId)">
+                    <div class="file {{item.classes}}"></div>
                     <div class="name">{{item.name}}</div>
                 </div>
             </template>
