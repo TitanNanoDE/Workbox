@@ -4,7 +4,7 @@ import Log from '../Log';
 
 let Terminal = Make({
 
-    name : 'System::Terminal',
+    name : 'workbox.kernel.terminal',
 
     displayName : 'Terminal',
 

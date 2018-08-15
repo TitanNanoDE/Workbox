@@ -334,7 +334,7 @@ let WorkSpaceBorderToolWindow = Make({
 }, ApplicationWindow).get();
 
 let WindowManager = {
-    name : 'System::WindowManager',
+    name : 'workbox.kernel.windowmanager',
     headless : false,
     /**
      * [rootView description]
@@ -360,7 +360,7 @@ let WindowManager = {
     init(window) {
         ApplicationManager.updateWindowManager(this.createApplicationWindow.bind(this));
 
-        let [core] = ApplicationManager.getInstances('System::Core');
+        let [core] = ApplicationManager.getInstances('workbox.kernel.core');
 
         core.on('ready', () => {
             window.viewPort.bind({ template: 'window-manager-template', view: this.view });

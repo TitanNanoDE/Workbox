@@ -31,7 +31,7 @@ const buildSubTree = function(index, tree = {}) {
 };
 
 const FileSystem = {
-    name : 'System::FileSystem',
+    name : 'workbox.kernel.filesystem',
     headless : true,
 
     ls(path) {

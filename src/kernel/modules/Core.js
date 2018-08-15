@@ -9,7 +9,7 @@ const { create } = Object;
 
 let SystemCore = Make({
 
-    name : 'System::Core',
+    name : 'workbox.kernel.core',
 
     /**
      * @type {LogInterface}
@@ -34,7 +34,7 @@ let SystemCore = Make({
         this._logger = Log.use(this.name);
         this.loadModules();
 
-        let [fileSystem] = ApplicationManager.getInstances('System::FileSystem');
+        let [fileSystem] = ApplicationManager.getInstances('workbox.kernel.filesystem');
         const systemVolume = create(fileSystem.volumePrototypes.StaticVolume).constructor();
         const volume = create(fileSystem.volumePrototypes.IndexedDBVolume).constructor();
 

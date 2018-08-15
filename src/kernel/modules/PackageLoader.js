@@ -8,7 +8,7 @@ import Log from '../Log';
 
 const PackageLoader = {
 
-    name: 'system.module.PackageLoader',
+    name: 'workbox.kernel.packageloader',
 
     headless: true,
 

@@ -7,7 +7,7 @@ import ViewId from '../../shared/ViewId';
 const { create } = Object;
 
 const getFileSystem = function() {
-    const [fileSystem] = ApplicationManager.getInstances('System::FileSystem');
+    const [fileSystem] = ApplicationManager.getInstances('workbox.kernel.filesystem');
 
     return fileSystem;
 };
@@ -112,7 +112,7 @@ const createMainMenuWindow = function(application) {
     const window = ApplicationManager.requestApplicationMainWindow(application, 'workSpaceBorderTool');
 
     /** @type {WindowManager} */
-    const [WindowManager] = ApplicationManager.getInstances('System::WindowManager');
+    const [WindowManager] = ApplicationManager.getInstances('workbox.kernel.windowmanager');
 
     window.viewPort.bind({ template: WorkSpace.templates.MainMenuWindow });
     window.scope.currentMainMenu = null;
@@ -135,7 +135,7 @@ const createMainMenuWindow = function(application) {
         return entry.handler();
     };
     window.scope.onAboutSystem = function() {
-        ApplicationManager.launch('system.js.about', WorkSpace.name);
+        ApplicationManager.launch('workbox.about', WorkSpace.name);
     };
 
     window.scope.registerCallbacks();
@@ -153,7 +153,7 @@ const createMainMenuWindow = function(application) {
 
 const WorkSpace = {
 
-    name: 'System::WorkSpace',
+    name: 'workbox.kernel.workspace',
     displayName: 'File Manager',
     noMainWindow: true,
     icons: [{ name : '32', src : './userSpace/theme/file-manager.svg'}],
@@ -174,7 +174,7 @@ const WorkSpace = {
     ], [{
         title: 'File',
         get id() { return ViewId.create(this); },
-        
+
         entries: [{
             get id() { return ViewId.create(this); },
             title: 'New Window',

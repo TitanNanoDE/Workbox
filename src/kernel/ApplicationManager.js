@@ -43,7 +43,7 @@ const applicationRemoteLaunch = function(applicationMeta, applicationManager) {
             if (!instanceList[applicationMeta.name]) {
                 instanceList[applicationMeta.name] = [];
             }
-            
+
             instanceList[applicationMeta.name].push(instance);
 
             return Promise.all([instance, fetchRemoteInstance(instance)]);
@@ -119,7 +119,7 @@ const fetchRemoteInstance = function(remoteInstance) {
 
 const ApplicationManager = {
 
-    name: 'ApplicationManager',
+    name: 'workbox.kernel.applicationmanager',
 
     _fakeWindow: null,
     _scope: null,

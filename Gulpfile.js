@@ -186,7 +186,7 @@ gulp.task('build:packages:views', () => {
             module: {
                 rules: [{
                     test: /\.html$/,
-                    use: ['html-loader']
+                    use: ['text-loader']
                 }],
             },
         }))

@@ -2,11 +2,13 @@ import System from 'System';
 
 const AboutSystemJS = {
 
-    name: 'system.js.about',
+    name: 'workbox.about',
+
+    displayName: 'About Workbox',
 
     icons: [{
         name: '32',
-        src: 'package://system.js.about/icons/about-icon.png',
+        src: 'package://workbox.about/icons/about-icon.png',
     }],
 
     constructor() {
@@ -14,9 +16,9 @@ const AboutSystemJS = {
     },
 
     init(window) {
-        window.title = 'About SystemJS';
+        window.title = this.displayName;
         window.attachView('main-template');
-        window.setDimension(400, 200);
+        window.setDimension(550, 370);
     },
 
     __proto__: System.Prototypes.Application,

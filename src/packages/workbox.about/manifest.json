@@ -1,5 +1,5 @@
 {
-    "name": "system.js.about",
+    "name": "workbox.about",
 
     "resources": {
         "icons/about-icon.png": "theme://about.svg"

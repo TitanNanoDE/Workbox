@@ -4,4 +4,4 @@ import SystemCore from './modules/Core';
 
 Thread.bootstrap(ApplicationManager);
 
-ApplicationManager.register(SystemCore).launch('System::Core');
+ApplicationManager.register(SystemCore).launch('workbox.kernel.core');
