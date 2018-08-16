@@ -39,17 +39,11 @@ let SystemCore = Make({
         const volume = create(fileSystem.volumePrototypes.IndexedDBVolume).constructor();
 
         Promise.all([systemVolume.ready, volume.ready]).then(() => {
-            let dirIndex = null;
-
             fileSystem.mount('/', systemVolume);
             fileSystem.mount('/local', volume);
             fileSystem.emit('ready');
 
-            fileSystem.writeFile(`/local/tmp/${Date.now()}.log`, `system start!! ~ so wow!! ${new Date()}`);
-
-            dirIndex = Object.keys(fileSystem.ls('/local/tmp/'));
-
-            return fileSystem.readFile(`/local/tmp/${dirIndex[Math.round(Math.random() * dirIndex.length)]}`);
+            return fileSystem.writeFile(`/local/tmp/${Date.now()}.log`, `system start!! ~ so wow!! ${new Date()}`);
         }).then(file => {
             this._logger.log(file);
             this._logger.log('initializing...');
