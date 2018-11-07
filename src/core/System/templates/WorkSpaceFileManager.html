@@ -84,12 +84,12 @@
 
     <div class="file-manager-container">
         <div class="toolbar">
-            <div class="material-icons toolbar-icon"
+            <system-icon name="arrow_back" class="material-icons toolbar-icon"
                 bind-event(click)="Handoff(view.goBack)"
-                bind-enabled="view.history.canGoBack">arrow_back</div>
-            <div class="material-icons toolbar-icon"
+                bind-enabled="view.history.canGoBack"></system-icon>
+            <system-icon name="arrow_forward" class="material-icons toolbar-icon"
                 bind-event(click)="Handoff(view.goForward)"
-                bind-enabled="view.history.canGoForward">arrow_forward</div>
+                bind-enabled="view.history.canGoForward"></system-icon>
         </div>
         <div class="fileGrid">
             <template bind-repeat="item in view.currentDir">
