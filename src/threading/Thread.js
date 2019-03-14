@@ -2,14 +2,12 @@ import 'subworkers';
 import uuid from 'uuid';
 import deepCopy from '../shared/deepCopy';
 import { MessagePortTrait } from './traits';
+import {
+    MESSAGE_TYPE_CALL, MESSAGE_TYPE_CALLBACK, MESSAGE_TYPE_EVENT,
+    MESSAGE_TYPE_RETURN_VALUE, MESSAGE_TYPE_PARENT_INJECT
+} from './messages';
 import validateTrait from 'application-frame/core/validateTrait';
-//const IS_WORKER = (!!self.importScript && !self.document);
-
-const { create } = Object;
-const MESSAGE_TYPE_CALL = 'THREAD_MESSAGE_CALL';
-const MESSAGE_TYPE_RETURN_VALUE = 'THREAD_MESSAGE_RETURN_VALUE';
-const MESSAGE_TYPE_CALLBACK = 'THREAD_MESSAGE_CALLBACK';
-const MESSAGE_TYPE_EVENT = 'THREAD_MESSAGE_EVENT';
+import CurrentThreadStore from './CurrentThreadStore';
 
 const getPropertyValue = function(source, property, target) {
     do {
@@ -27,21 +25,22 @@ const getPropertyValue = function(source, property, target) {
     } while ((source = Object.getPrototypeOf(source)));
 };
 
+const constructThread = function(_worker, prototype) {
+    const instance = { _worker, __proto__: prototype };
+
+    instance.ready = new Promise((resolve) => {
+        instance.addListener('bootstrapping', instance._onBootstrapping.bind(instance, resolve));
+    });
+
+    instance._worker.onmessage = instance._onEventHandler.bind(instance);
+    instance._worker.onerror = console.error.bind(console);
+
+    return instance._createInterface();
+};
+
 const Thread = {
     /** @type {Worker} */
     _worker: null,
-
-    /** @type {Object.<string, Function>[]} */
-    _callbacks: null,
-
-    /** @type {Function[]} */
-    _listeners: {},
-
-    interfaces: [],
-
-    _setupInterfaces() {
-        this.interfaces = this.interfaces.map(interfacce => create(interfacce)).reverse();
-    },
 
     _createInterface() {
         const proxy = new Proxy (this, {
@@ -70,70 +69,32 @@ const Thread = {
         return proxy;
     },
 
-    _onProcessMessage(event) {
-        const { type } = event.data;
-
-        if (type === MESSAGE_TYPE_CALL) {
-            const { name, args, transaction } = event.data;
-
-            return this._onCallHandler(name, args, transaction);
-        }
-
-        if (type === MESSAGE_TYPE_CALLBACK) {
-            const { callbackId, args } = event.data;
-
-            return this._onCallbackHandler(callbackId, args);
-        }
-
-        if (type === MESSAGE_TYPE_EVENT) {
-            const { name, data } = event.data;
-
-            return this._onEventHandler(name, data);
-        }
-    },
-
-    _onCallHandler(name, params, transaction) {
-        const responsibleInterface = this.interfaces.find(interfacce => !!interfacce[name]);
-
-        if (!responsibleInterface) {
-            throw new Error(`no interface declared the method ${name}!`);
-        }
-
-        return Promise.resolve(responsibleInterface[name](...params))
-            .then(result => {
-                this._postMessage({ type: MESSAGE_TYPE_RETURN_VALUE, return: result, transaction });
-            }).catch(error => {
-                this._postMessage({ type: MESSAGE_TYPE_RETURN_VALUE, error, transaction });
-            });
-    },
-
-    _onCallbackHandler(id, args) {
-        if (!this._callbacks[id]) {
-            throw `unable to invoke ${id}!`;
-        }
-
-        this._callbacks[id].apply(null, args);
-    },
-
-    _onEventHandler(event, data) {
-        if (!this._listeners || !this._listeners[event]) {
-            return;
-        }
-
-        this._listeners[event].forEach(cb => cb(data));
-    },
-
     _postMessage(message, transfers) {
         return this._worker.postMessage(message, transfers);
     },
 
-    get handle() {
-        if (!this._handle) {
-            this._handle = new MessageChannel();
-            this._handle.port1.onmessage = this._onProcessMessage.bind(this);
+    _onEventHandler(event) {
+        const { type, name, data } = event.data;
+
+        if (type !== MESSAGE_TYPE_EVENT || !this._listeners || !this._listeners[name]) {
+            return;
         }
 
-        return this._handle.port2;
+        this._listeners[name].forEach(cb => cb(data));
+    },
+
+    _onBootstrapping(setReady) {
+        /** @type {CurrentThread} */
+        const parentThread = CurrentThreadStore.get();
+        const channel = new MessageChannel();
+
+        channel.port1.onmessage = parentThread._onProcessMessage.bind(parentThread);
+        channel.port1.onerror = parentThread._onProcessMessage.bind(parentThread);
+
+        parentThread._broadcastTargets.push(channel);
+
+        this._postMessage({ type: MESSAGE_TYPE_PARENT_INJECT, parent: channel.port2 }, [channel.port2]);
+        setReady();
     },
 
     call(name, args, transfers = []) {
@@ -167,27 +128,12 @@ const Thread = {
         });
     },
 
-    registerCallback(callback) {
-        const id = `Callback<${uuid()}>`;
-
-        this._callbacks[id] = callback;
-
-        return id;
-    },
-
     invokeCallback(callbackId, args) {
         args.forEach((item, index) => {
             args[index] = deepCopy(item);
         });
 
         this._postMessage({ type: MESSAGE_TYPE_CALLBACK, callbackId, args });
-    },
-
-    dispatchEvent(name, data) {
-        this._postMessage({
-            type: MESSAGE_TYPE_EVENT,
-            name, data
-        });
     },
 
     addListener(name, cb) {
@@ -204,13 +150,8 @@ const Thread = {
 
     new(source) {
         const _worker = new Worker(source);
-        const _callbacks = {};
-        const instance = { _worker, _callbacks, __proto__: this };
 
-        _worker.onmessage = instance._onProcessMessage.bind(instance);
-        instance._setupInterfaces();
-
-        return instance._createInterface();
+        return constructThread(_worker, this);
     },
 
     from(port) {
@@ -224,12 +165,7 @@ const Thread = {
             throw new Error(`unable to create Thread from ${port.toString()}`);
         }
 
-        const _callbacks = {};
-        const instance = { _worker, _callbacks, __proto__: this };
-
-        _worker.onmessage = instance._onProcessMessage.bind(instance);
-
-        return instance._createInterface();
+        return constructThread(_worker, this);
     }
 };
 

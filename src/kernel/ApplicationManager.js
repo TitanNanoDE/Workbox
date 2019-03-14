@@ -4,7 +4,7 @@ import Application from 'application-frame/core/Application';
 import SystemHandlers from './SystemHandlers';
 import UrlResolver from './UrlResolver';
 import ApplicationMenuManager from './ApplicationMenuManager';
-import CurrentThread from './CurrentThread';
+import IOThread from '../threading/IOThread';
 import { ViewController, ViewControllerProxied } from './ViewController';
 
 const IMEDIATE_INVOCE = 0;
@@ -148,7 +148,7 @@ const ApplicationManager = {
 
                     Promise.all([this._scope._id, viewController._id])
                         .then(([parentViewId, viewId]) => {
-                            CurrentThread.attachView(parentViewId, viewId);
+                            IOThread.attachView(parentViewId, viewId);
                         });
 
                     this._contentScope = viewController;

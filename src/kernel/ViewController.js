@@ -6,7 +6,7 @@ export const ViewController = {
     _updateBuffer: null,
 
     constructor(templateId) {
-        this._id = CurrentThread.createView(templateId);
+        this._id = IOThread.createView(templateId);
         this._viewChanged = [];
         this.registerCallbacks();
 
@@ -15,7 +15,7 @@ export const ViewController = {
 
     commit(update) {
         return this._id.then(id => {
-            return CurrentThread.updateView(id, update);
+            return IOThread.updateView(id, update);
         });
     },
 

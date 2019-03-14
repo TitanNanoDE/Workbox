@@ -51,7 +51,7 @@ export const ViewInterface = {
 
         scope.Handoff = function(callbackId, ...staticArgs) {
             return () => {
-                CurrentThread.invokeCallback(callbackId, staticArgs);
+                CurrentThread.mainThread.invokeCallback(callbackId, staticArgs);
             };
         };
 

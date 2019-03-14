@@ -2,7 +2,6 @@ import Application from 'application-frame/core/Application';
 import NetworkRequest from 'application-frame/core/NetworkRequest';
 import SystemHandlers from '../SystemHandlers';
 import Thread from '../../threading/Thread';
-import CurrentThread from '../CurrentThread';
 import ApplicationManager from '../ApplicationManager';
 import Log from '../Log';
 
@@ -40,12 +39,7 @@ const PackageLoader = {
     onRemoteLaunchApplication(name) {
         const instance = Thread.new(`./process.js?${name}`);
 
-
-        const loading = instance
-            .call('injectKernel', [CurrentThread.handle], [CurrentThread.handle])
-            .then(() => instance.load(name));
-
-        return loading.then(() => instance);
+        return instance.ready.then(() => instance.load(name)).then(() => instance);
     },
 
     __proto__: Application,
