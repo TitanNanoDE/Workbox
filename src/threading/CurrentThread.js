@@ -33,8 +33,6 @@ const CurrentThread = {
     mainThread: null,
 
     /** @type {Thread} */
-    // this is still a problem. Who do we make this possible? The child does not know of it's parent.
-    // The Thread interface inside the parent doesn't know of the `CurrentThread` either.
     get parent() {
         if (!this._parent) {
             throw new Error('Thread has not been properly bootstrapped!');

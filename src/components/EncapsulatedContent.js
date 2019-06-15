@@ -5,13 +5,23 @@ export const EncapsulatedContentMeta = {
     name: 'encapsulated-content',
     attributes: {},
 
+    get object() {
+        return EncapsulatedContent;
+    },
+
     __proto__: CustomElementMeta,
 };
+
+const meta = EncapsulatedContentMeta;
+const pContent = Symbol('EncapsulatedContent.content');
+const {
+    create: pCreate
+} = meta.symbols;
 
 
 export const EncapsulatedContent = {
 
-    _content: null,
+    [pContent]: null,
 
     get content() {
         return this._content;
@@ -27,20 +37,20 @@ export const EncapsulatedContent = {
         }
 
         this.shadowRoot.appendChild(value);
-        this._content = value;
+        this[pContent] = value;
     },
 
     constructor: function EncapsulatedContent() {
         return CustomElement.constructor.apply(this);
     },
 
-    _create() {
+    [pCreate]() {
         this.attachShadow({ mode: 'open' });
     },
 
     __proto__: CustomElement,
 };
 
-EncapsulatedContentMeta.prepare(EncapsulatedContent);
+meta.prepare(EncapsulatedContent);
 
-window.customElements.define(EncapsulatedContentMeta.name, EncapsulatedContent.constructor);
+window.customElements.define(meta.name, meta.object.constructor);

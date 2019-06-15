@@ -6,6 +6,12 @@ export const WindowManagerMeta = {
     __proto__: CustomElementMeta,
 };
 
+const meta = WindowManagerMeta;
+const {
+    create,
+    createBoundShadowTemplate,
+} = meta.symbols;
+
 export const template = document.querySelector('#window-manager-ce-template');
 
 const CollisionTypes = { HORIZONTAL : 0, VERTICAL : 1 };
@@ -79,8 +85,8 @@ export const WindowManager = {
         return CustomElement.constructor.apply(this);
     },
 
-    _create() {
-        this._createBoundShadowTemplate(template);
+    [create]() {
+        this[createBoundShadowTemplate](template);
         this._observer = new MutationObserver(this._onChildrenChanged.bind(this));
         this._observer.observe(this, { childList: true, });
         this._windows = Array.from(this.children).filter(child => child.isWindow);

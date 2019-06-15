@@ -3,14 +3,34 @@ import '@webcomponents/webcomponentsjs/webcomponents-sd-ce.js';
 import { HTMLElement } from 'application-frame/core/nativePrototype';
 import { DataBinding } from '@af-modules/databinding';
 
-const invokeCallback = function(attribute, element, newValue, oldValue) {
-    const callback = `_on${attribute[0].toUpperCase()}${attribute.substring(1)}Changed`;
+const symbolsStore = new WeakMap();
+const metaObject = Symbol('CustomElement.meta');
+const pCreate = Symbol('CustomElement.create');
+const pCreateBoundShadowTemplate = Symbol('CustomElement.createBoundShadowTemplate');
+
+const getAttributeCallbackName = function(attributeName) {
+    return `on${attributeName[0].toUpperCase()}${attributeName.substring(1)}Changed`;
+
+};
+
+const invokeCallback = function(attributeSymbols, attribute, element, newValue, oldValue) {
+    const callback = attributeSymbols[getAttributeCallbackName(attribute)];
 
     if (!element[callback] || typeof element[callback] !== 'function') {
         return;
     }
 
     return element[callback](newValue, oldValue);
+};
+
+const normalizeAttributeConfig = function(config) {
+    if (typeof config === 'string') {
+        config = { type: config };
+    }
+
+    config = Object.assign({ type: 'string', reflectChanges: false }, config);
+
+    return config;
 };
 
 const typeCast = function(value, type) {
@@ -51,25 +71,28 @@ export const CustomElementMeta = {
 
     attributes: {},
 
+    name: 'unnamed-custom-element',
+
     prepare(prototype) {
         prototype.constructor.prototype = prototype;
 
-        for (let key in this) {
-            Object.defineProperty(prototype.constructor, key, {
-                get() {
-                    return this[key].bind(this);
-                }
-            });
-        }
+        Object.defineProperty(prototype.constructor, 'observedAttributes', {
+            get() {
+                return this.attributes && Object.keys(this.attributes) || undefined;
+            }
+        });
+
+        Object.defineProperty(prototype, metaObject, {
+            value: this,
+            writable: false,
+        });
+
+        const attributeSymbols = this.symbols;
 
         Object.entries(this.attributes).forEach(([attribute, config]) => {
-            const privateAttributeStore = `_${attribute}`;
+            const privateAttributeStore = attributeSymbols[attribute];
 
-            if (typeof config === 'string') {
-                config = { type: config };
-            }
-
-            config = Object.assign({ type: 'string', reflectChanges: false }, config);
+            config = normalizeAttributeConfig(config);
 
             prototype[privateAttributeStore] = null;
 
@@ -83,11 +106,11 @@ export const CustomElementMeta = {
 
                     value = typeCast(value, config.type);
 
-                    if (this._onPropertyChanged) {
-                        this._onPropertyChanged(attribute, old, value);
+                    if (this[attributeSymbols.onPropertyChanged]) {
+                        this[attributeSymbols.onPropertyChanged](attribute, old, value);
                     }
 
-                    const transformedValue = invokeCallback(attribute, this, value, old);
+                    const transformedValue = invokeCallback(attributeSymbols, attribute, this, value, old);
 
                     if (transformedValue !== undefined) {
                         value = transformedValue;
@@ -101,26 +124,56 @@ export const CustomElementMeta = {
                 }
             });
         });
+    },
+
+    get symbols() {
+        const store = symbolsStore.has(this) ? symbolsStore.get(this) : {};
+
+        if (!store.onPropertyChanged) {
+            store.onPropertyChanged = Symbol(`${this.name}.onPropertyChanged`);
+        }
+
+        if (!store.create) {
+            store.create = pCreate;
+        }
+
+        if (!store.createBoundShadowTemplate) {
+            store.createBoundShadowTemplate = pCreateBoundShadowTemplate;
+        }
+
+        Object.keys(this.attributes)
+            .forEach(name => {
+                if (store[name]) {
+                    return;
+                }
+
+                const callbackName = getAttributeCallbackName(name);
+
+                store[name] = Symbol(`${this.name}.${name}`);
+                store[callbackName] = Symbol(`${this.name}.${callbackName}`);
+            });
+
+        symbolsStore.set(this, store);
+
+        return Object.assign({}, store);
     }
 };
 
 export const CustomElement = {
 
-    get observedAttributes() {
-        return this.attributes && Object.keys(this.attributes) || undefined;
-    },
+    [metaObject]: null,
 
     constructor: function CustomElement() {
         const instance = HTMLElement.constructor.apply(this);
 
-        instance._create();
+        instance[pCreate]();
 
         return instance;
     },
 
-    _create() {},
+    [pCreate]() {},
 
-    _createBoundShadowTemplate(template) {
+    [pCreateBoundShadowTemplate](template) {
         const { scope, node } = DataBinding.createTemplateInstance({ template, scope: this });
 
         this._scope = scope;
@@ -129,21 +182,34 @@ export const CustomElement = {
     },
 
     attributeChangedCallback(attribute, oldValue, newValue) {
-        if (attribute in this && this[`_${attribute}`] !== newValue) {
+        const attributeSymbol = this[metaObject].symbols[attribute];
+
+        if (attribute in this && this[attributeSymbol] !== newValue) {
             this[attribute] = newValue;
         }
     },
 
     connectedCallback() {
+        const attributeSymbols = this[metaObject].symbols;
+
         Array.from(this.attributes)
             .forEach(attribute => {
                 if (!attribute.value) {
                     return;
                 }
 
-                this.attributeChangedCallback(attribute.name, undefined, attribute.value);
+                const oldValue = this[attributeSymbols[attribute]];
+                const newValue = attribute.value;
+
+                if (oldValue === newValue) {
+                    return;
+                }
+
+                this.attributeChangedCallback(attribute.name, oldValue, newValue);
             });
     },
 
     __proto__: HTMLElement,
 };
+
+export { metaObject as meta };

@@ -13,17 +13,25 @@ export const SystemIconMeta = {
     __proto__: CustomElementMeta,
 };
 
+const meta = SystemIconMeta;
+
+const {
+    onPropertyChanged,
+    create,
+    createBoundShadowTemplate,
+} = meta.symbols;
+
 export const SystemIcon = {
 
     constructor: function SystemIcon() {
         return CustomElement.constructor.apply(this);
     },
 
-    _create() {
-        this._createBoundShadowTemplate(SystemIconMeta.template);
+    [create]() {
+        this[createBoundShadowTemplate](SystemIconMeta.template);
     },
 
-    _onPropertyChanged() {
+    [onPropertyChanged]() {
         this._scope.update();
     },
 

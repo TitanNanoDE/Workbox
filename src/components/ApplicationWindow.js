@@ -1,6 +1,5 @@
 import '@webcomponents/webcomponentsjs/webcomponents-sd-ce.js';
 import { DataBinding } from '@af-modules/databinding';
-import { HTMLElement } from 'application-frame/core/nativePrototype';
 import { CustomElementMeta, CustomElement } from './CustomElement';
 
 export const ApplicationWindowMeta = {
@@ -26,48 +25,70 @@ export const ApplicationWindowMeta = {
     __proto__: CustomElementMeta,
 };
 
+const meta = ApplicationWindowMeta;
+
+const {
+    top: pTop,
+    left: pLeft,
+    height: pHeight,
+    width: pWidth,
+    onTypeChanged,
+    onPropertyChanged,
+    create: pCreate,
+} = meta.symbols;
+
+
+const pLocalOffset = Symbol('ApplicationWindow.localOffset');
+const pHeightOverride = Symbol('ApplicationWindow._height');
+const pWidthOverride = Symbol('ApplicationWindow._width');
+const pLeftOverride = Symbol('ApplicationWindow._left');
+const pTopOverride = Symbol('ApplicationWindow._top');
+const pScope = Symbol('ApplicationWindow.scope');
+const pActive = Symbol('ApplicationWindow.active');
+const pListener = Symbol('ApplicationWindow.listener');
+
 export const ApplicationWindow = {
 
-    _scope: null,
+    [pScope]: null,
 
-    _active : false,
-    _localOffset : { x: 0, y: 0},
-    _listener: null,
-    __height: null,
-    __width: null,
-    __left: null,
-    __top: null,
+    [pActive] : false,
+    [pLocalOffset] : { x: 0, y: 0},
+    [pListener]: null,
+    [pHeightOverride]: null,
+    [pWidthOverride]: null,
+    [pLeftOverride]: null,
+    [pTopOverride]: null,
 
-    get _height() {
-        return this.__height || this.getBoundingClientRect().height;
+    get [pHeight]() {
+        return this[pHeightOverride] || this.getBoundingClientRect().height;
     },
 
-    set _height(value) { this.__height = value; },
+    set [pHeight](value) { this[pHeightOverride] = value; },
 
-    get _width() {
-        return this.__width || this.getBoundingClientRect().width;
+    get [pWidth]() {
+        return this[pWidthOverride] || this.getBoundingClientRect().width;
     },
 
-    set _width(value) { this.__width = value; },
+    set [pWidth](value) { this[pWidthOverride] = value; },
 
-    get _left() {
-        return this.__left || this.getBoundingClientRect().left;
+    get [pLeft]() {
+        return this[pLeftOverride] || this.getBoundingClientRect().left;
     },
 
-    set _left(value) { this.__left = value; },
+    set [pLeft](value) { this[pLeftOverride] = value; },
 
-    get _top() {
-        return this.__top || this.getBoundingClientRect().top;
+    get [pTop]() {
+        return this[pTopOverride] || this.getBoundingClientRect().top;
     },
 
-    set _top(value) { this.__top = value; },
+    set [pTop](value) { this[pTopOverride] = value; },
 
     get isWindow() { return true; },
 
-    _onTypeChanged(value) {
-        if (this._scope) {
-            this._scope.__destroy__();
-            this._scope = null;
+    [onTypeChanged](value) {
+        if (this[pScope]) {
+            this[pScope].__destroy__();
+            this[pScope] = null;
             this.childNodes.forEach(node => this.removeChild(node));
         }
 
@@ -78,9 +99,9 @@ export const ApplicationWindow = {
         const template = ApplicationWindowMeta.templates[value];
         const { scope, node } = DataBinding.createTemplateInstance({ template, scope: this });
 
-        this._scope = scope;
+        this[pScope] = scope;
 
-        DataBinding.attachBindings(this._scope, this, [
+        DataBinding.attachBindings(this[pScope], this, [
             { selector: 'root', name: 'bind-attr', parameter: 'style', value: 'view._calculateStyle()' }
         ]);
 
@@ -91,7 +112,7 @@ export const ApplicationWindow = {
         return CustomElement.constructor.apply(this);
     },
 
-    _create() {
+    [pCreate]() {
         this.attachShadow({ mode: 'open' });
     },
 
@@ -108,12 +129,12 @@ export const ApplicationWindow = {
         return `${position} ${dimensions} ${zIndex}`;
     },
 
-    _onPropertyChanged() {
-        if (!this._scope) {
+    [onPropertyChanged]() {
+        if (!this[pScope]) {
             return;
         }
 
-        this._scope.update();
+        this[pScope].update();
     },
 
     /**
@@ -128,11 +149,11 @@ export const ApplicationWindow = {
         let offsetX = e.pageX - this.left;
         let offsetY = e.pageY - this.top;
 
-        this._active = true;
-        this._listener = this._onWindowMove.bind(this);
-        this._localOffset = { x: offsetX, y: offsetY };
+        this[pActive] = true;
+        this[pListener] = this._onWindowMove.bind(this);
+        this[pLocalOffset] = { x: offsetX, y: offsetY };
 
-        window.addEventListener('mousemove', this._listener);
+        window.addEventListener('mousemove', this[pListener]);
     },
 
     /**
@@ -141,8 +162,8 @@ export const ApplicationWindow = {
      * @return {void}
      */
     _onWindowDrop() {
-        this._active = false;
-        window.removeEventListener('mousemove', this._listener);
+        this[pActive] = false;
+        window.removeEventListener('mousemove', this[pListener]);
     },
 
     /**
@@ -151,12 +172,12 @@ export const ApplicationWindow = {
      * @return {undefined}
      */
     _onWindowMove(e) {
-        if (!this._active || e.clientX <= 0 || e.clientY <= 0) {
+        if (!this[pActive] || e.clientX <= 0 || e.clientY <= 0) {
             return;
         }
 
-        const newX = e.pageX - this._localOffset.x;
-        const newY = e.pageY - this._localOffset.y;
+        const newX = e.pageX - this[pLocalOffset].x;
+        const newY = e.pageY - this[pLocalOffset].y;
 
         if (this.parentElement && this.parentElement.isWindowController) {
             this.dispatchEvent(new CustomEvent('moverequest', {
@@ -198,10 +219,10 @@ export const ApplicationWindow = {
         this.top = y;
 
         this.dispatchEvent(new Event('move'), { x, y });
-        this._scope.update();
+        this[pScope].update();
     },
 
-    __proto__: HTMLElement,
+    __proto__: CustomElement,
 };
 
 ApplicationWindowMeta.prepare(ApplicationWindow);
